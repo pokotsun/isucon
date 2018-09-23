@@ -138,32 +138,60 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
             }
             event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
         }
+
+        // N + 1の解消バージョン
+        //rows, err := db.Query("SELECT user_id, reserved_at, sheet_id AS id, rank, num FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE event_id = ? AND canceled_at IS NULL ORDER BY sheet_id", event.ID)
+	    //if err != nil {
+	    //    return nil, err
+	    //}
+	    //defer rows.close()
+        //event.total = 0
+        //for key, _ := range event.sheets {
+        //    switch key {
+        //        case "s": {
+        //            event.sheets[key].price = event.price + 5000
+        //            event.total += 50
+        //            event.sheets[key].total = 50
+        //        }
+        //        case "a": {
+        //            event.sheets[key].price = event.price + 3000
+        //            event.total += 150
+        //            event.sheets[key].total = 150
+        //        }
+        //        case "b": {
+        //            event.sheets[key].price = event.price + 1000
+        //            event.total += 300
+        //            event.sheets[key].total = 300
+        //        }
+        //        case "c": {
+        //            event.sheets[key].price = event.price
+        //            event.total += 500
+        //            event.sheets[key].total = 500
+        //        }
+        //    }
+        //}
+        //numsheets := event.sheets[key].total + 1
+        //for i := 0; i < numsheets; i++  {
+        //for rows.next() {
+        //    var sheet sheet
+        //    var reservation Reservation
+        //    if err := rows.scan(&reservation.UserID, &reservation.ReservedAt, &sheet.id, &sheet.rank, &sheet.num); err != nil {
+        //        return nil, err
+        //    }
+        //    sheet.Price = event.Sheets[key].Price
+        //}
+	    //rows, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NOT NULL ORDER BY sheet_id", event.ID)
+        //SELECT * FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE event_id = 10 AND canceled_at IS NULL;
+	    //if err != nil {
+	    //    return nil, err
+	    //}
+	    //defer rows.Close()
+        //for rows.Next() {
+        //      
+        //}
+
     }
 
-    //for rows.Next() {
-	//	//var sheet Sheet
-	//	//if err := rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-	//	//	return nil, err
-	//	//}
-	//	//event.Sheets[sheet.Rank].Price = event.Price + sheet.Price
-	//	//event.Total++
-	//	//event.Sheets[sheet.Rank].Total++
-
-	//	var reservation Reservation
-	//	err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
-	//	if err == nil {
-	//		sheet.Mine = reservation.UserID == loginUserID
-	//		sheet.Reserved = true
-	//		sheet.ReservedAtUnix = reservation.ReservedAt.Unix()
-	//	} else if err == sql.ErrNoRows { // 該当行がない -> まだ予約されていないならば
-	//		event.Remains++
-	//		event.Sheets[sheet.Rank].Remains++
-	//	} else {
-	//		return nil, err
-	//	}
-
-	//	event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
-	//}
 
 	return &event, nil
 }
