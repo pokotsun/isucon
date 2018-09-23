@@ -2,6 +2,7 @@ package main
 
 
 import(
+	"errors"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
