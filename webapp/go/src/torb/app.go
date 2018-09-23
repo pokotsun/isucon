@@ -115,7 +115,8 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
                 event.Sheets[key].Total = 500
             }
         }
-        for i := 0; i < event.Total; i++ {
+        numSheets := event.Sheets[key].Total
+        for i := 0; i < numSheets; i++ {
 	        var sheet Sheet
             sheet.ID = int64(getSheetID(uint(i), key))
             sheet.Rank = key
