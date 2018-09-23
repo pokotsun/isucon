@@ -86,3 +86,23 @@ func adminLoginRequired(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+func getLoginUser(c echo.Context) (*User, error) {
+	userID := sessUserID(c)
+	if userID == 0 {
+		return nil, errors.New("not logged in")
+	}
+	var user User
+	err := db.QueryRow("SELECT id, nickname FROM users WHERE id = ?", userID).Scan(&user.ID, &user.Nickname)
+	return &user, err
+}
+
+func getLoginAdministrator(c echo.Context) (*Administrator, error) {
+	administratorID := sessAdministratorID(c)
+	if administratorID == 0 {
+		return nil, errors.New("not logged in")
+	}
+	var administrator Administrator
+	err := db.QueryRow("SELECT id, nickname FROM administrators WHERE id = ?", administratorID).Scan(&administrator.ID, &administrator.Nickname)
+	return &administrator, err
+}
