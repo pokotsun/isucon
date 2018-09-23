@@ -91,26 +91,27 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	//defer rows.Close()
 
     // sheetそれぞれに行う
+    event.Total = 0
     for key, _ := range event.Sheets {
         switch key {
             case "S": {
                 event.Sheets[key].Price = event.Price + 5000
-                event.Total = 50
+                event.Total += 50
                 event.Sheets[key].Total = 50
             }
             case "A": {
                 event.Sheets[key].Price = event.Price + 3000
-                event.Total = 150
+                event.Total += 150
                 event.Sheets[key].Total = 150
             }
             case "B": {
                 event.Sheets[key].Price = event.Price + 1000
-                event.Total = 300
+                event.Total += 300
                 event.Sheets[key].Total = 300
             }
             case "C": {
                 event.Sheets[key].Price = event.Price
-                event.Total = 500
+                event.Total += 500
                 event.Sheets[key].Total = 500
             }
         }
