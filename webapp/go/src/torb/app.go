@@ -176,7 +176,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
     event.Remains = event.Total
 
     // ここから予約したものをデータとして入れていく
-    rows, err := db.Query("SELECT user_id, reserved_at, sheet_id AS id, rank, num FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE event_id = ? AND canceled_at IS NULL ORDER BY sheet_id", event.ID)
+    rows, err := db.Query("SELECT user_id, reserved_at, rank, num FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE event_id = ? AND canceled_at IS NULL ORDER BY sheet_id", event.ID)
     if err != nil {
         return nil, err
     }
@@ -185,7 +185,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
     for rows.Next() {
         var sheet Sheet
         var reservation Reservation
-        if err := rows.Scan(&reservation.UserID, &reservation.ReservedAt, &sheet.ID, &sheet.Rank, &sheet.Num); err != nil {
+        if err := rows.Scan(&reservation.UserID, &reservation.ReservedAt, &sheet.Rank, &sheet.Num); err != nil {
             return nil, err
         }
         event.Sheets[sheet.Rank].Detail[sheet.Num-1].Mine = reservation.UserID == loginUserID
