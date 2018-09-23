@@ -5,6 +5,7 @@ echo "Deploy Start"
 for host in ${HOSTS}; do
 ssh -t $host <<EOC
 cd torb
+git reset --hard HEAD
 git pull origin master
 cd webapp/go
 make
