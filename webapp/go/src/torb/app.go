@@ -41,7 +41,6 @@ func getEvents(all bool) ([]*Event, error) {
 	var events []*Event
 	for rows.Next() {
 		var tmpEvent Event
-		//if err := rows.Scan(&event.ID, &event.title, &event.publicfg, &event.ClosedFg, &event.Price); err != nil {
 		if err := rows.Scan(&tmpEvent.ID, &tmpEvent.PublicFg); err != nil {
 			return nil, err
 		}
@@ -55,23 +54,13 @@ func getEvents(all bool) ([]*Event, error) {
 		for k := range event.Sheets {
 			event.Sheets[k].Detail = nil
 		}
-		//events[i] = event
 		events = append(events, event)
 	}
 
-	//for i, v := range events {
-	//	event, err := getEvent(v.ID, -1)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	for k := range event.Sheets {
-	//		event.Sheets[k].Detail = nil
-	//	}
-	//	events[i] = event
-	//}
 	return events, nil
 }
 
+// SheetのIDを返す(Numではない)
 func getSheetID(baseID uint, sheetRank string) (uint) {
     switch sheetRank{
         case "A": return baseID + uint(50)
@@ -93,13 +82,56 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		"C": &Sheets{},
 	}
 
-	//rows, err := db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
-	//if err != nil {
-	//	return nil, err
-	//}
-	//defer rows.Close()
-
     // sheetそれぞれに行う
+    //event.Total = 0
+    //for key, _ := range event.Sheets {
+    //    switch key {
+    //        case "S": {
+    //            event.Sheets[key].Price = event.Price + 5000
+    //            event.Total += 50
+    //            event.Sheets[key].Total = 50
+    //        }
+    //        case "A": {
+    //            event.Sheets[key].Price = event.Price + 3000
+    //            event.Total += 150
+    //            event.Sheets[key].Total = 150
+    //        }
+    //        case "B": {
+    //            event.Sheets[key].Price = event.Price + 1000
+    //            event.Total += 300
+    //            event.Sheets[key].Total = 300
+    //        }
+    //        case "C": {
+    //            event.Sheets[key].Price = event.Price
+    //            event.Total += 500
+    //            event.Sheets[key].Total = 500
+    //        }
+    //    }
+    //    numSheets := event.Sheets[key].Total + 1
+    //    for i := 1; i < numSheets; i++ {
+	//        var sheet Sheet
+    //        sheet.ID = int64(getSheetID(uint(i), key))
+    //        sheet.Rank = key
+    //        sheet.Num = int64(i)
+    //        sheet.Price = event.Sheets[key].Price
+
+    //        var reservation Reservation
+    //        err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL", event.ID, getSheetID(uint(i), key)).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
+    //        if err == nil {
+    //            sheet.Mine = reservation.UserID == loginUserID
+    //            sheet.Reserved = true
+    //            sheet.ReservedAtUnix = reservation.ReservedAt.Unix()
+    //        } else if err == sql.ErrNoRows { // 該当行がない -> まだ予約されていないならば
+    //            event.Remains++
+    //            event.Sheets[sheet.Rank].Remains++
+    //        } else {
+    //            return nil, err
+    //        }
+    //        event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
+    //    }
+    //}
+
+    // N+1問題解消版
     event.Total = 0
     for key, _ := range event.Sheets {
         switch key {
@@ -124,67 +156,63 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
                 event.Sheets[key].Total = 500
             }
         }
-        numSheets := event.Sheets[key].Total + 1
-        for i := 1; i < numSheets; i++ {
-	        var sheet Sheet
-            sheet.ID = int64(getSheetID(uint(i), key))
-            sheet.Rank = key
-            sheet.Num = int64(i)
-            sheet.Price = event.Sheets[key].Price
+        event.Sheets[key].Remains = event.Sheets[key].Total
 
-            var reservation Reservation
-            //err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID, getSheetID(uint(i), key)).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
-            err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL", event.ID, getSheetID(uint(i), key)).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
-            if err == nil {
-                sheet.Mine = reservation.UserID == loginUserID
-                sheet.Reserved = true
-                sheet.ReservedAtUnix = reservation.ReservedAt.Unix()
-            } else if err == sql.ErrNoRows { // 該当行がない -> まだ予約されていないならば
-                event.Remains++
-                event.Sheets[sheet.Rank].Remains++
-            } else {
-                return nil, err
-            }
-            event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
+        numSheets := event.Sheets[key].Total + 1
+        var sheetsDetail []*Sheet
+        for i := 1; i < numSheets; i++ {
+            sheetsDetail = append(sheetsDetail,
+                &Sheet{
+                    ID: int64(getSheetID(uint(i), key)),
+                    Rank : key,
+                    Num :int64(i),
+                    Price: event.Sheets[key].Price,
+                    Mine : false,
+                    Reserved: false,
+                })
         }
+        event.Sheets[key].Detail = sheetsDetail
+    }// ここまでで一旦全部予約されてないものとしてデータを入れる
+    event.Remains = event.Total
+
+    // ここから予約したものをデータとして入れていく
+    rows, err := db.Query("SELECT user_id, reserved_at, sheet_id AS id, rank, num FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE event_id = ? AND canceled_at IS NULL ORDER BY sheet_id", event.ID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+    event.Total = 0
+
+    for rows.Next() {
+        var sheet Sheet
+        var reservation Reservation
+        if err := rows.Scan(&reservation.UserID, &reservation.ReservedAt, &sheet.ID, &sheet.Rank, &sheet.Num); err != nil {
+            return nil, err
+        }
+        event.Sheets[sheet.Rank].Detail[sheet.Num-1].Mine = reservation.UserID == loginUserID
+        event.Sheets[sheet.Rank].Detail[sheet.Num-1].Reserved = true
+        event.Sheets[sheet.Rank].Detail[sheet.Num-1].ReservedAtUnix = reservation.ReservedAt.Unix()
+        event.Remains--
+        event.Sheets[sheet.Rank].Remains--
+    }
+
+
+
 
         // N + 1の解消バージョン
-        //rows, err := db.Query("SELECT user_id, reserved_at, sheet_id AS id, rank, num FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE event_id = ? AND canceled_at IS NULL ORDER BY sheet_id", event.ID)
+        //rows, err := db.query("select user_id, reserved_at, sheet_id as id, rank, num from reservations inner join sheets on sheets.id = reservations.sheet_id where event_id = ? and canceled_at is null order by sheet_id", event.id)
 	    //if err != nil {
 	    //    return nil, err
 	    //}
 	    //defer rows.close()
         //event.total = 0
-        //for key, _ := range event.sheets {
-        //    switch key {
-        //        case "s": {
-        //            event.sheets[key].price = event.price + 5000
-        //            event.total += 50
-        //            event.sheets[key].total = 50
-        //        }
-        //        case "a": {
-        //            event.sheets[key].price = event.price + 3000
-        //            event.total += 150
-        //            event.sheets[key].total = 150
-        //        }
-        //        case "b": {
-        //            event.sheets[key].price = event.price + 1000
-        //            event.total += 300
-        //            event.sheets[key].total = 300
-        //        }
-        //        case "c": {
-        //            event.sheets[key].price = event.price
-        //            event.total += 500
-        //            event.sheets[key].total = 500
-        //        }
-        //    }
-        //}
+
         //numsheets := event.sheets[key].total + 1
         //for i := 0; i < numsheets; i++  {
         //for rows.next() {
         //    var sheet sheet
-        //    var reservation Reservation
-        //    if err := rows.scan(&reservation.UserID, &reservation.ReservedAt, &sheet.id, &sheet.rank, &sheet.num); err != nil {
+        //    var reservation reservation
+        //    if err := rows.scan(&reservation.userid, &reservation.reservedat, &sheet.id, &sheet.rank, &sheet.num); err != nil {
         //        return nil, err
         //    }
         //    sheet.Price = event.Sheets[key].Price
@@ -198,9 +226,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
         //for rows.Next() {
         //      
         //}
-
-    }
-
 
 	return &event, nil
 }
@@ -431,6 +456,9 @@ func main() {
 			"recent_events":       recentEvents,
 		})
 	}, loginRequired)
+
+
+    // LOGIN処理
 	e.POST("/api/actions/login", func(c echo.Context) error {
 		var params struct {
 			LoginName string `json:"login_name"`
