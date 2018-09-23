@@ -81,56 +81,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		"B": &Sheets{},
 		"C": &Sheets{},
 	}
-
-    // sheetそれぞれに行う
-    //event.Total = 0
-    //for key, _ := range event.Sheets {
-    //    switch key {
-    //        case "S": {
-    //            event.Sheets[key].Price = event.Price + 5000
-    //            event.Total += 50
-    //            event.Sheets[key].Total = 50
-    //        }
-    //        case "A": {
-    //            event.Sheets[key].Price = event.Price + 3000
-    //            event.Total += 150
-    //            event.Sheets[key].Total = 150
-    //        }
-    //        case "B": {
-    //            event.Sheets[key].Price = event.Price + 1000
-    //            event.Total += 300
-    //            event.Sheets[key].Total = 300
-    //        }
-    //        case "C": {
-    //            event.Sheets[key].Price = event.Price
-    //            event.Total += 500
-    //            event.Sheets[key].Total = 500
-    //        }
-    //    }
-    //    numSheets := event.Sheets[key].Total + 1
-    //    for i := 1; i < numSheets; i++ {
-	//        var sheet Sheet
-    //        sheet.ID = int64(getSheetID(uint(i), key))
-    //        sheet.Rank = key
-    //        sheet.Num = int64(i)
-    //        sheet.Price = event.Sheets[key].Price
-
-    //        var reservation Reservation
-    //        err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL", event.ID, getSheetID(uint(i), key)).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
-    //        if err == nil {
-    //            sheet.Mine = reservation.UserID == loginUserID
-    //            sheet.Reserved = true
-    //            sheet.ReservedAtUnix = reservation.ReservedAt.Unix()
-    //        } else if err == sql.ErrNoRows { // 該当行がない -> まだ予約されていないならば
-    //            event.Remains++
-    //            event.Sheets[sheet.Rank].Remains++
-    //        } else {
-    //            return nil, err
-    //        }
-    //        event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
-    //    }
-    //}
-
     // N+1問題解消版
     event.Total = 0
     for key, _ := range event.Sheets {
@@ -194,37 +144,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
         event.Remains--
         event.Sheets[sheet.Rank].Remains--
     }
-
-
-
-
-        // N + 1の解消バージョン
-        //rows, err := db.query("select user_id, reserved_at, sheet_id as id, rank, num from reservations inner join sheets on sheets.id = reservations.sheet_id where event_id = ? and canceled_at is null order by sheet_id", event.id)
-	    //if err != nil {
-	    //    return nil, err
-	    //}
-	    //defer rows.close()
-        //event.total = 0
-
-        //numsheets := event.sheets[key].total + 1
-        //for i := 0; i < numsheets; i++  {
-        //for rows.next() {
-        //    var sheet sheet
-        //    var reservation reservation
-        //    if err := rows.scan(&reservation.userid, &reservation.reservedat, &sheet.id, &sheet.rank, &sheet.num); err != nil {
-        //        return nil, err
-        //    }
-        //    sheet.Price = event.Sheets[key].Price
-        //}
-	    //rows, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NOT NULL ORDER BY sheet_id", event.ID)
-        //SELECT * FROM reservations INNER JOIN sheets ON sheets.id = reservations.sheet_id WHERE event_id = 10 AND canceled_at IS NULL;
-	    //if err != nil {
-	    //    return nil, err
-	    //}
-	    //defer rows.Close()
-        //for rows.Next() {
-        //      
-        //}
 
 	return &event, nil
 }
@@ -367,6 +286,7 @@ func main() {
 	})
 
 	e.GET("/api/users/:id", func(c echo.Context) error {
+        // User情報取得
 		var user User
 		if err := db.QueryRow("SELECT id, nickname FROM users WHERE id = ?", c.Param("id")).Scan(&user.ID, &user.Nickname); err != nil {
 			return err
@@ -378,9 +298,10 @@ func main() {
 		}
 		if user.ID != loginUser.ID {
 			return resError(c, "forbidden", 403)
-		}
+		}// LOGINしてなかったらここで切る
 
-		rows, err := db.Query("SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5", user.ID)
+		//rows, err := db.Query("SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5", user.ID)
+		rows, err := db.Query("SELECT r.id, r.event_id, r.reserved_at, r.canceled_at, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5", user.ID)
 		if err != nil {
 			return err
 		}
@@ -390,7 +311,8 @@ func main() {
 		for rows.Next() {
 			var reservation Reservation
 			var sheet Sheet
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num); err != nil {
+			//if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num); err != nil {
+			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num); err != nil {
 				return err
 			}
 
@@ -417,8 +339,9 @@ func main() {
 			recentReservations = make([]Reservation, 0)
 		}
 
+        // TotalPriceの取得
 		var totalPrice int
-		if err := db.QueryRow("SELECT IFNULL(SUM(e.price + s.price), 0) FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.canceled_at IS NULL", user.ID).Scan(&totalPrice); err != nil {
+		if err := db.QueryRow("SELECT IFNULL(SUM(e.price + s.price), 0) FROM reservations r LEFT JOIN sheets s ON s.id = r.sheet_id LEFT JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.canceled_at IS NULL", user.ID).Scan(&totalPrice); err != nil {
 			return err
 		}
 
@@ -455,6 +378,7 @@ func main() {
 			"recent_events":       recentEvents,
 		})
 	}, loginRequired)
+// END OF /api/users/:id
 
 
     // LOGIN処理
