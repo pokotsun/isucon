@@ -235,8 +235,8 @@ func main() {
 			return err
 		}
 
-		var cnt uint
-		if err := tx.QueryRow("SELECT COUNT (login_name) FROM users WHERE login_name = ?", params.LoginName).Scan(&cnt); err != sql.ErrNoRows {
+		var count uint
+		if err := tx.QueryRow("SELECT COUNT (login_name) AS count FROM users WHERE login_name = ?", params.LoginName).Scan(&count); err != sql.ErrNoRows {
 		// if err := tx.QueryRow("SELECT * FROM users WHERE login_name = ?", params.LoginName); err != sql.ErrNoRows {
 			tx.Rollback()
 			if cnt > 0 {
