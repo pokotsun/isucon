@@ -29,11 +29,11 @@ CREATE TABLE IF NOT EXISTS reservations (
     user_id     INTEGER UNSIGNED NOT NULL,
     reserved_at DATETIME(6)      NOT NULL,
     canceled_at DATETIME(6)      DEFAULT NULL,
-    KEY event_id_and_sheet_id_idx (event_id, sheet_id)
+    KEY event_id_and_sheet_id_idx (event_id, sheet_id),
+    INDEX event_id(event_id),
+    INDEX sheet_id(sheet_id),
+    INDEX user_id(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-ALTER TABLE reservations ADD INDEX event_id; 
-ALTER TABLE reservations ADD INDEX sheet_id; 
-ALTER TABLE reservations ADD INDEX user_id; 
 
 CREATE TABLE IF NOT EXISTS administrators (
     id          INTEGER UNSIGNED PRIMARY KEY AUTO_INCREMENT,
