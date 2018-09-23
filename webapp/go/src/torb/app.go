@@ -195,6 +195,7 @@ func main() {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Output: os.Stderr}))
 	e.Static("/", "public")
+
 	e.GET("/", func(c echo.Context) error {
 		events, err := getEvents(false)
 		if err != nil {
@@ -209,6 +210,7 @@ func main() {
 			"origin": c.Scheme() + "://" + c.Request().Host,
 		})
 	}, fillinUser)
+
 	e.GET("/initialize", func(c echo.Context) error {
 		cmd := exec.Command("../../db/init.sh")
 		cmd.Stdin = os.Stdin
@@ -233,15 +235,15 @@ func main() {
 			return err
 		}
 
-		var user User
-		if err := tx.QueryRow("SELECT * FROM users WHERE login_name = ?", params.LoginName).Scan(&user.ID, &user.LoginName, &user.Nickname, &user.PassHash); err != sql.ErrNoRows {
+		var cnt uint
+		if err := tx.QueryRow("SELECT COUNT (login_name) FROM users WHERE login_name = ?", params.LoginName).Scan(&cnt); err != sql.ErrNoRows {
+		// if err := tx.QueryRow("SELECT * FROM users WHERE login_name = ?", params.LoginName); err != sql.ErrNoRows {
 			tx.Rollback()
-			if err == nil {
+			if cnt > 0 {
 				return resError(c, "duplicated", 409)
 			}
 			return err
 		}
-
 		res, err := tx.Exec("INSERT INTO users (login_name, pass_hash, nickname) VALUES (?, SHA2(?, 256), ?)", params.LoginName, params.Password, params.Nickname)
 		if err != nil {
 			tx.Rollback()
@@ -261,6 +263,7 @@ func main() {
 			"nickname": params.Nickname,
 		})
 	})
+
 	e.GET("/api/users/:id", func(c echo.Context) error {
 		var user User
 		if err := db.QueryRow("SELECT id, nickname FROM users WHERE id = ?", c.Param("id")).Scan(&user.ID, &user.Nickname); err != nil {
