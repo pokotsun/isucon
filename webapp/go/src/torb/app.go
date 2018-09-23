@@ -120,11 +120,12 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	        var sheet Sheet
             sheet.ID = int64(getSheetID(uint(i), key))
             sheet.Rank = key
-            sheet.Num = int64(i) 
+            sheet.Num = int64(i)
             sheet.Price = event.Sheets[key].Price
 
             var reservation Reservation
-            err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID, getSheetID(uint(i), key)).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
+            //err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID, getSheetID(uint(i), key)).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
+            err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL", event.ID, getSheetID(uint(i), key)).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
             if err == nil {
                 sheet.Mine = reservation.UserID == loginUserID
                 sheet.Reserved = true
