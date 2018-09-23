@@ -131,8 +131,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
         return nil, err
     }
     defer rows.Close()
-    event.Total = 0
-
     for rows.Next() {
         var sheet Sheet
         var reservation Reservation
