@@ -239,7 +239,7 @@ func main() {
 		if err := tx.QueryRow("SELECT COUNT(id) AS count FROM users WHERE login_name = ?", params.LoginName).Scan(&count); err != sql.ErrNoRows {
 		// if err := tx.QueryRow("SELECT * FROM users WHERE login_name = ?", params.LoginName); err != sql.ErrNoRows {
 			tx.Rollback()
-			if cnt > 0 {
+			if count > 0 {
 				return resError(c, "duplicated", 409)
 			}
 			return err
