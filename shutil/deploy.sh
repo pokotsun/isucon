@@ -20,7 +20,7 @@ done
 #EOC
 
 ssh -t isucon83 <<EOC
-cd torb/nginx
+cd torb/conf
 sudo cp nginx.conf /etc/nginx/nginx.conf
 sudo systemctl enable nginx 
 sudo systemctl restart nginx 
