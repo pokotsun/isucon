@@ -61,13 +61,13 @@ func getEvents(all bool) ([]*Event, error) {
 }
 
 // SheetのIDを返す(Numではない)
-func getSheetID(baseID uint, sheetRank string) (uint) {
+func getSheetID(num uint, sheetRank string) (uint) {
     switch sheetRank{
-        case "A": return baseID + uint(50)
-        case "B": return baseID + uint(200)
-        case "C": return baseID + uint(500)
+        case "A": return num + uint(50)
+        case "B": return num + uint(200)
+        case "C": return num + uint(500)
     }
-    return baseID
+    return num
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
@@ -517,13 +517,16 @@ func main() {
 			"sheet_num":  sheet.Num,
 		})
 	}, loginRequired)
+
+    // 予約の取り消し
 	e.DELETE("/api/events/:id/sheets/:rank/:num/reservation", func(c echo.Context) error {
+        // URLからデータ取得
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return resError(c, "not_found", 404)
 		}
 		rank := c.Param("rank")
-		num := c.Param("num")
+		num, _ := strconv.ParseInt(c.Param("num"), 10, 64)
 
 		user, err := getLoginUser(c)
 		if err != nil {
@@ -544,13 +547,12 @@ func main() {
 			return resError(c, "invalid_rank", 404)
 		}
 
-		var sheet Sheet
-		if err := db.QueryRow("SELECT * FROM sheets WHERE `rank` = ? AND num = ?", rank, num).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-			if err == sql.ErrNoRows {
-				return resError(c, "invalid_sheet", 404)
-			}
-			return err
-		}
+		//if err := db.QueryRow("SELECT * FROM sheets WHERE `rank` = ? AND num = ?", rank, num).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+		//	if err == sql.ErrNoRows {
+		//		return resError(c, "invalid_sheet", 404)
+		//	}
+		//	return err
+		//}
 
 		tx, err := db.Begin()
 		if err != nil {
@@ -558,7 +560,7 @@ func main() {
 		}
 
 		var reservation Reservation
-		if err := tx.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+		if err := tx.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE", event.ID, getSheetID(uint(num), rank)).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
 			tx.Rollback()
 			if err == sql.ErrNoRows {
 				return resError(c, "not_reserved", 400)
@@ -570,17 +572,17 @@ func main() {
 			return resError(c, "not_permitted", 403)
 		}
 
+        // canceled_atをUPDATEすることで論理削除
 		if _, err := tx.Exec("UPDATE reservations SET canceled_at = ? WHERE id = ?", time.Now().UTC().Format("2006-01-02 15:04:05.000000"), reservation.ID); err != nil {
 			tx.Rollback()
 			return err
 		}
-
 		if err := tx.Commit(); err != nil {
 			return err
 		}
-
 		return c.NoContent(204)
 	}, loginRequired)
+
 	e.GET("/admin/", func(c echo.Context) error {
 		var events []*Event
 		administrator := c.Get("administrator")
@@ -596,6 +598,7 @@ func main() {
 			"origin":        c.Scheme() + "://" + c.Request().Host,
 		})
 	}, fillinAdministrator)
+
 	e.POST("/admin/api/actions/login", func(c echo.Context) error {
 		var params struct {
 			LoginName string `json:"login_name"`
@@ -626,10 +629,12 @@ func main() {
 		}
 		return c.JSON(200, administrator)
 	})
+
 	e.POST("/admin/api/actions/logout", func(c echo.Context) error {
 		sessDeleteAdministratorID(c)
 		return c.NoContent(204)
 	}, adminLoginRequired)
+
 	e.GET("/admin/api/events", func(c echo.Context) error {
 		events, err := getEvents(true)
 		if err != nil {
@@ -637,6 +642,7 @@ func main() {
 		}
 		return c.JSON(200, events)
 	}, adminLoginRequired)
+
 	e.POST("/admin/api/events", func(c echo.Context) error {
 		var params struct {
 			Title  string `json:"title"`
