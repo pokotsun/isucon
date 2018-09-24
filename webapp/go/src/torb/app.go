@@ -580,7 +580,7 @@ func main() {
 		if err := tx.Commit(); err != nil {
 			return err
 		}
-		return c.NoContent(204)
+		return c.NoContent(204) // うまくいった場合204を返す
 	}, loginRequired)
 
 	e.GET("/admin/", func(c echo.Context) error {
