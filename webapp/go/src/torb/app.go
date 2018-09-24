@@ -523,7 +523,7 @@ func main() {
 			return resError(c, "not_found", 404)
 		}
 		rank := c.Param("rank")
-		num := c.Param("num")
+		num, _ := strconv.ParseInt(c.Param("num"), 10, 64)
 
 		user, err := getLoginUser(c)
 		if err != nil {
@@ -544,24 +544,13 @@ func main() {
 			return resError(c, "invalid_rank", 404)
 		}
 
-<<<<<<< HEAD
-=======
-		var sheet Sheet
-		if err := db.QueryRow("SELECT * FROM sheets WHERE `rank` = ? AND num = ?", rank, num).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-			if err == sql.ErrNoRows {
-				return resError(c, "invalid_sheet", 404)
-			}
-			return err
-		}
-
->>>>>>> parent of 57d37d6... DELETEのsheet撲滅をした
 		tx, err := db.Begin()
 		if err != nil {
 			return err
 		}
 
 		var reservation Reservation
-		if err := tx.QueryRow("SELECT id, user_id FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL FOR UPDATE", event.ID, getSheetID(uint(num), rank)).Scan(&reservation.ID, &reservation.UserID); err != nil {
+		if err := tx.QueryRow("SELECT id, user_id, reserved_at FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE", event.ID, getSheetID(uint(num), rank)).Scan(&reservation.ID, &reservation.UserID, &reservation.ReservedAt); err != nil {
 			tx.Rollback()
 			if err == sql.ErrNoRows {
 				return resError(c, "not_reserved", 400)
