@@ -69,35 +69,44 @@ func getEvents(all bool) ([]*Event, error) {
 	}
 	defer tx.Commit()
 
-	rows, err := tx.Query("SELECT * FROM events ORDER BY id ASC")
+	rows, err := tx.Query("SELECT id FROM events ORDER BY id ASC")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
+	// Publicなものを消している
 	var events []*Event
 	for rows.Next() {
 		var event Event
 		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
 			return nil, err
 		}
+		// Privateかつallフラグが立っていない場合は消す
 		if !all && !event.PublicFg {
 			continue
 		}
-		events = append(events, &event)
-	}
-
-	// 2回目のイベントの扱い
-	for i, v := range events {
-		event, err := getEventByID(v.ID, -1)
+		getEvent(&event, -1)
+		e, err := getEvent(&event, -1)
 		if err != nil {
 			return nil, err
 		}
-		for k := range event.Sheets {
-			event.Sheets[k].Detail = nil
+		for k := range e.Sheets {
+			e.Sheets[k].Detail = nil
 		}
-		events[i] = event
+		events = append(events, e)
 	}
+
+	// for i, v := range events {
+	// 	event, err := getEvent(v, -1)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	for k := range event.Sheets {
+	// 		event.Sheets[k].Detail = nil
+	// 	}
+	// 	events[i] = event
+	// }
 	return events, nil
 }
 // sheetIDからsheet情報を取得
