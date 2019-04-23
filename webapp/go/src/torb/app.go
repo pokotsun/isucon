@@ -82,31 +82,23 @@ func getEvents(all bool) ([]*Event, error) {
 		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
 			return nil, err
 		}
-		// Privateかつallフラグが立っていない場合は消す
+		// Privateかつallフラグが立っていない場合はスキップ
 		if !all && !event.PublicFg {
 			continue
 		}
-		getEvent(&event, -1)
-		e, err := getEvent(&event, -1)
+		events = append(events, &event)
+	}
+
+	for i, v := range events {
+		event, err := getEvent(v, -1)
 		if err != nil {
 			return nil, err
 		}
-		for k := range e.Sheets {
-			e.Sheets[k].Detail = nil
+		for k := range event.Sheets {
+			event.Sheets[k].Detail = nil
 		}
-		events = append(events, e)
+		events[i] = event
 	}
-
-	// for i, v := range events {
-	// 	event, err := getEvent(v, -1)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	for k := range event.Sheets {
-	// 		event.Sheets[k].Detail = nil
-	// 	}
-	// 	events[i] = event
-	// }
 	return events, nil
 }
 // sheetIDからsheet情報を取得
