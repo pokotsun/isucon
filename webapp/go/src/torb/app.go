@@ -16,74 +16,12 @@ import (
 	"strings"
 	"time"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
+	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/middleware"
 )
 
-
-func sessUserID(c echo.Context) int64 {
-	sess, _ := session.Get("session", c)
-	var userID int64
-	if x, ok := sess.Values["user_id"]; ok {
-		userID, _ = x.(int64)
-	}
-	return userID
-}
-
-func sessSetUserID(c echo.Context, id int64) {
-	sess, _ := session.Get("session", c)
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-	}
-	sess.Values["user_id"] = id
-	sess.Save(c.Request(), c.Response())
-}
-
-func sessDeleteUserID(c echo.Context) {
-	sess, _ := session.Get("session", c)
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-	}
-	delete(sess.Values, "user_id")
-	sess.Save(c.Request(), c.Response())
-}
-
-func sessAdministratorID(c echo.Context) int64 {
-	sess, _ := session.Get("session", c)
-	var administratorID int64
-	if x, ok := sess.Values["administrator_id"]; ok {
-		administratorID, _ = x.(int64)
-	}
-	return administratorID
-}
-
-func sessSetAdministratorID(c echo.Context, id int64) {
-	sess, _ := session.Get("session", c)
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-	}
-	sess.Values["administrator_id"] = id
-	sess.Save(c.Request(), c.Response())
-}
-
-func sessDeleteAdministratorID(c echo.Context) {
-	sess, _ := session.Get("session", c)
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-	}
-	delete(sess.Values, "administrator_id")
-	sess.Save(c.Request(), c.Response())
-}
 
 func loginRequired(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -248,6 +186,7 @@ func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 var db *sql.DB
 
+// Main Function
 func main() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&charset=utf8mb4",
 		os.Getenv("DB_USER"), os.Getenv("DB_PASS"),
