@@ -140,6 +140,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Price = event.Price + sheet.Price
 		event.Total++
 		event.Sheets[sheet.Rank].Total++
+		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
 	}
 
 	rows, err := db.Query(
@@ -167,7 +168,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		sheet.ReservedAtUnix = reservation.ReservedAt.Unix()
 		event.Remains--
 		event.Sheets[sheet.Rank].Remains--
-		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
+		event.Sheets[sheet.Rank].Detail[sheet.Num-1] = &sheet
 	}
 	return &event, nil
 
