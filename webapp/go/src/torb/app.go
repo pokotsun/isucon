@@ -109,7 +109,6 @@ func getSheetFromID(id int64) Sheet {
 		return Sheet{ ID: id, Rank:"A", Num: id-50, Price: 3000 }
 	case (200 < id && id <= 500):
 		return Sheet{ ID: id, Rank:"B", Num: id-200, Price: 1000 }
-		return Sheet{}
 	case (500 < id && id <= 1000):
 		return Sheet{ ID: id, Rank:"C", Num: id-500, Price: 0 }
 	default:
@@ -118,7 +117,6 @@ func getSheetFromID(id int64) Sheet {
 } 
 
 // eventの取得
-// func getEvent(event *Event, loginUserID int64) (*Event, error) {
 func getEvent(eventID, loginUserID int64) (*Event, error) {
 	var event Event
 	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", 
@@ -143,9 +141,8 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
 	}
 
-	rows, err := db.Query(
-		"SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)",
-		event.ID)
+	query := "SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)"
+	rows, err := db.Query(query, event.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +152,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	event.Sheets["B"].Remains = 300
 	event.Sheets["C"].Remains = 500
 
+	// 現状予約として有効なreservationだけ取得する
 	for rows.Next() {
 		var reservation Reservation
 		if err := rows.Scan(&reservation.ID, &reservation.EventID,
@@ -171,45 +169,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail[sheet.Num-1] = &sheet
 	}
 	return &event, nil
-
-	// rows, err := db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-	// ここまでsheetの処理
-
-	// for rows.Next() {
-	// 	var sheet Sheet
-	// 	if err := rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-	// 		return nil, err
-	// 	}
-	// 	event.Sheets[sheet.Rank].Price = event.Price + sheet.Price // eventの総計の値段
-	// 	event.Total++ // sheetのtotal
-	// 	event.Sheets[sheet.Rank].Total++ // sheetごとのtotal
-
-	// 	// 現在予約として有効なreservationだけ用意する
-	// 	var reservation Reservation
-	// 	err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", 
-	// 		event.ID, sheet.ID).Scan(
-	// 			&reservation.ID, &reservation.EventID,
-	// 			 &reservation.SheetID,&reservation.UserID,
-	// 			  &reservation.ReservedAt, &reservation.CanceledAt)
-
-	// 	if err == nil {
-	// 		sheet.Mine = reservation.UserID == loginUserID
-	// 		sheet.Reserved = true
-	// 		sheet.ReservedAtUnix = reservation.ReservedAt.Unix()
-	// 	} else if err == sql.ErrNoRows {
-	// 		event.Remains++
-	// 		event.Sheets[sheet.Rank].Remains++
-	// 	} else {
-	// 		return nil, err
-	// 	}
-
-	// 	event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
-	// }
-	// return &event, nil
 }
 
 // eventの浄化
