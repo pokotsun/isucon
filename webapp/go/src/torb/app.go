@@ -86,19 +86,26 @@ func getEvents(all bool) ([]*Event, error) {
 		if !all && !event.PublicFg {
 			continue
 		}
-		events = append(events, &event)
-	}
-
-	for i, v := range events {
-		event, err := getEvent(v, -1)
+		assignedEvent, err := getEventByID(event.ID, -1)
 		if err != nil {
 			return nil, err
 		}
-		for k := range event.Sheets {
-			event.Sheets[k].Detail = nil
+		for k := range assignedEvent.Sheets {
+			assignedEvent.Sheets[k].Detail = nil
 		}
-		events[i] = event
+		events = append(events, assignedEvent)
 	}
+
+	// for i, v := range events {
+	// 	event, err := getEvent(v, -1)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	for k := range event.Sheets {
+	// 		event.Sheets[k].Detail = nil
+	// 	}
+	// 	events[i] = event
+	// }
 	return events, nil
 }
 // sheetIDからsheet情報を取得
