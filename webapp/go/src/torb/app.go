@@ -89,7 +89,7 @@ func getEvents(all bool) ([]*Event, error) {
 
 	// 2回目のイベントの扱い
 	for i, v := range events {
-		event, err := getEvent(v.ID, -1)
+		event, err := getEventByID(v.ID, -1)
 		if err != nil {
 			return nil, err
 		}
@@ -100,7 +100,7 @@ func getEvents(all bool) ([]*Event, error) {
 	}
 	return events, nil
 }
-
+// sheetIDからsheet情報を取得
 func getSheetFromID(id int64) Sheet {
 	switch {
 	case (0 < id && id <= 50):
@@ -116,15 +116,7 @@ func getSheetFromID(id int64) Sheet {
 	}
 } 
 
-// eventの取得
-func getEvent(eventID, loginUserID int64) (*Event, error) {
-	var event Event
-	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", 
-		eventID).Scan(&event.ID, &event.Title, &event.PublicFg,
-			 &event.ClosedFg, &event.Price); err != nil {
-		return nil, err
-	}
-
+func getEvent(event *Event, loginUserID int64) (*Event, error) {
 	event.Sheets = map[string]*Sheets {
 		"S": &Sheets{},
 		"A": &Sheets{},
@@ -168,7 +160,19 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Remains--
 		event.Sheets[sheet.Rank].Detail[sheet.Num-1] = &sheet
 	}
-	return &event, nil
+	return event, nil
+}
+
+// eventの取得(EventIDから)
+func getEventByID(eventID, loginUserID int64) (*Event, error) {
+	var event Event
+	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", 
+		eventID).Scan(&event.ID, &event.Title, &event.PublicFg,
+			 &event.ClosedFg, &event.Price); err != nil {
+		return nil, err
+	}
+
+	return getEvent(&event, loginUserID)
 }
 
 // eventの浄化
@@ -338,7 +342,7 @@ func main() {
 				return err
 			}
 
-			event, err := getEvent(reservation.EventID, -1)
+			event, err := getEventByID(reservation.EventID, -1)
 			if err != nil {
 				return err
 			}
@@ -378,7 +382,7 @@ func main() {
 			if err := rows.Scan(&eventID); err != nil {
 				return err
 			}
-			event, err := getEvent(eventID, -1)
+			event, err := getEventByID(eventID, -1)
 			if err != nil {
 				return err
 			}
@@ -456,7 +460,7 @@ func main() {
 			loginUserID = user.ID
 		}
 
-		event, err := getEvent(eventID, loginUserID)
+		event, err := getEventByID(eventID, loginUserID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "not_found", 404)
@@ -482,7 +486,7 @@ func main() {
 			return err
 		}
 
-		event, err := getEvent(eventID, user.ID)
+		event, err := getEventByID(eventID, user.ID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "invalid_event", 404)
@@ -550,7 +554,7 @@ func main() {
 			return err
 		}
 
-		event, err := getEvent(eventID, user.ID)
+		event, err := getEventByID(eventID, user.ID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "invalid_event", 404)
@@ -685,7 +689,7 @@ func main() {
 			return err
 		}
 
-		event, err := getEvent(eventID, -1)
+		event, err := getEventByID(eventID, -1)
 		if err != nil {
 			return err
 		}
@@ -697,7 +701,7 @@ func main() {
 		if err != nil {
 			return resError(c, "not_found", 404)
 		}
-		event, err := getEvent(eventID, -1)
+		event, err := getEventByID(eventID, -1)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "not_found", 404)
@@ -722,7 +726,7 @@ func main() {
 			params.Public = false
 		}
 
-		event, err := getEvent(eventID, -1)
+		event, err := getEventByID(eventID, -1)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "not_found", 404)
@@ -748,7 +752,7 @@ func main() {
 			return err
 		}
 
-		e, err := getEvent(eventID, -1)
+		e, err := getEventByID(eventID, -1)
 		if err != nil {
 			return err
 		}
@@ -761,7 +765,7 @@ func main() {
 			return resError(c, "not_found", 404)
 		}
 
-		event, err := getEvent(eventID, -1)
+		event, err := getEventByID(eventID, -1)
 		if err != nil {
 			return err
 		}
