@@ -672,7 +672,6 @@ func main() {
 		defer rows.Close()
 
 		var reports []Report
-		var event_price int64
 		for rows.Next() {
 			var reservation Reservation
 			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &event.Price); err != nil {
@@ -686,7 +685,7 @@ func main() {
 				Num:           sheet.Num,
 				UserID:        reservation.UserID,
 				SoldAt:        reservation.ReservedAt.Format("2006-01-02T15:04:05.000000Z"),
-				Price:         event_price + sheet.Price,
+				Price:         event.Price + sheet.Price,
 			}
 			if reservation.CanceledAt != nil {
 				report.CanceledAt = reservation.CanceledAt.Format("2006-01-02T15:04:05.000000Z")
