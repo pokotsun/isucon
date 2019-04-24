@@ -324,11 +324,13 @@ func main() {
 		if user.ID != loginUser.ID {
 			return resError(c, "forbidden", 403)
 		}
+		// ここまでOK
+		// query := "SELECT r.id, r.event_id, r.reserved_at, r.canceled_at, r.sheet_id s.rank AS sheet_rank, s.num AS sheet_num" + 
+		// 	" FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id" + 
+		// 	" WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5"
 		
-		// query := "SELECT id, event_id, sheet_id, reserved_at, canceled_at" + 
-		// 	" FROM reservations WHERE user_id = ? ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5"
 		query := "SELECT id, event_id, sheet_id, reserved_at, canceled_at" + 
-			" FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5"
+			" FROM reservations WHERE user_id = ? ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5"
 		
 		rows, err := db.Query(query, user.ID)
 		if err != nil {
@@ -337,7 +339,6 @@ func main() {
 		defer rows.Close()
 
 		var recentReservations []Reservation
-		var recentEvents []*Event
 		for rows.Next() {
 			var reservation Reservation
 			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID,
@@ -351,12 +352,6 @@ func main() {
 				return err
 			}
 			price := event.Sheets[sheet.Rank].Price
-
-			for k := range event.Sheets {
-				event.Sheets[k].Detail = nil
-			}
-			recentEvents = append(recentEvents, event)
-
 			event.Sheets = nil
 			event.Total = 0
 			event.Remains = 0
@@ -375,34 +370,32 @@ func main() {
 			recentReservations = make([]Reservation, 0)
 		}
 
-		// 買ったチケットの値段総計を取得
 		var totalPrice int
 		if err := db.QueryRow("SELECT IFNULL(SUM(e.price + s.price), 0) FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.canceled_at IS NULL", user.ID).Scan(&totalPrice); err != nil {
 			return err
 		}
 
-		// query = "SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5"
-		// rows, err = db.Query(query, user.ID)
-		// if err != nil {
-		// 	return err
-		// }
-		// defer rows.Close()
+		rows, err = db.Query("SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5", user.ID)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
 
-		// var recentEvents []*Event
-		// for rows.Next() {
-		// 	var eventID int64
-		// 	if err := rows.Scan(&eventID); err != nil {
-		// 		return err
-		// 	} // ここまででevent_idの取得
-		// 	event, err := getEventByID(eventID, -1)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	for k := range event.Sheets {
-		// 		event.Sheets[k].Detail = nil
-		// 	}
-		// 	recentEvents = append(recentEvents, event)
-		// }
+		var recentEvents []*Event
+		for rows.Next() {
+			var eventID int64
+			if err := rows.Scan(&eventID); err != nil {
+				return err
+			}
+			event, err := getEventByID(eventID, -1)
+			if err != nil {
+				return err
+			}
+			for k := range event.Sheets {
+				event.Sheets[k].Detail = nil
+			}
+			recentEvents = append(recentEvents, event)
+		}
 		if recentEvents == nil {
 			recentEvents = make([]*Event, 0)
 		}
