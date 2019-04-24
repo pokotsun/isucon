@@ -659,22 +659,24 @@ func main() {
 			return resError(c, "not_found", 404)
 		}
 
-		event, err := getEventByID(eventID, -1)
-		if err != nil {
-			return err
-		}
+		// event, err := getEventByID(eventID, -1)
+		// if err != nil {
+		// 	return err
+		// }
 
 		query := "SELECT r.*, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ? ORDER BY reserved_at ASC FOR UPDATE"
-		rows, err := db.Query(query, event.ID)
+		// rows, err := db.Query(query, event.ID)
+		rows, err := db.Query(query, eventID)
 		if err != nil {
 			return err
 		}
 		defer rows.Close()
 
 		var reports []Report
+		var eventPrice int64
 		for rows.Next() {
 			var reservation Reservation
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &event.Price); err != nil {
+			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &eventPrice); err != nil {
 				return err
 			}
 			sheet := getSheetFromID(reservation.SheetID)
@@ -685,7 +687,7 @@ func main() {
 				Num:           sheet.Num,
 				UserID:        reservation.UserID,
 				SoldAt:        reservation.ReservedAt.Format("2006-01-02T15:04:05.000000Z"),
-				Price:         event.Price + sheet.Price,
+				Price:         eventPrice + sheet.Price,
 			}
 			if reservation.CanceledAt != nil {
 				report.CanceledAt = reservation.CanceledAt.Format("2006-01-02T15:04:05.000000Z")
