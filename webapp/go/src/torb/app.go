@@ -601,20 +601,14 @@ func main() {
 		}
 		sheet := getSheetFromID(sheet_id)
 
-		// if err := db.QueryRow("SELECT * FROM sheets WHERE `rank` = ? AND num = ?", rank, num).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-		// 	if err == sql.ErrNoRows {
-		// 		return resError(c, "invalid_sheet", 404)
-		// 	}
-		// 	return err
-		// }
-
 		tx, err := db.Begin()
 		if err != nil {
 			return err
 		}
 
 		var reservation Reservation
-		if err := tx.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+		if err := tx.QueryRow("SELECT id, user_id FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE",
+			 event.ID, sheet.ID).Scan(&reservation.ID, &reservation.UserID); err != nil {
 			tx.Rollback()
 			if err == sql.ErrNoRows {
 				return resError(c, "not_reserved", 400)
@@ -634,9 +628,9 @@ func main() {
 		if err := tx.Commit(); err != nil {
 			return err
 		}
-
 		return c.NoContent(204)
 	}, loginRequired)
+
 	e.GET("/admin/", func(c echo.Context) error {
 		var events []*Event
 		administrator := c.Get("administrator")
