@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS reservations (
     INDEX reserved_and_canceled_idx (canceled_at, reserved_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
 CREATE TABLE IF NOT EXISTS administrators (
     id          INTEGER UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     nickname    VARCHAR(128) NOT NULL,
