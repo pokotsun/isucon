@@ -96,16 +96,6 @@ func getEvents(all bool) ([]*Event, error) {
 		events = append(events, assignedEvent)
 	}
 
-	// for i, v := range events {
-	// 	event, err := getEvent(v, -1)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	for k := range event.Sheets {
-	// 		event.Sheets[k].Detail = nil
-	// 	}
-	// 	events[i] = event
-	// }
 	return events, nil
 }
 // sheetIDからsheet情報を取得
@@ -327,7 +317,6 @@ func main() {
 		if err := db.QueryRow("SELECT id, nickname FROM users WHERE id = ?", c.Param("id")).Scan(&user.ID, &user.Nickname); err != nil {
 			return err
 		}
-
 		loginUser, err := getLoginUser(c)
 		if err != nil {
 			return err
@@ -335,8 +324,9 @@ func main() {
 		if user.ID != loginUser.ID {
 			return resError(c, "forbidden", 403)
 		}
-
-		rows, err := db.Query("SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5", user.ID)
+		// ここまでOK
+		query := "SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5"
+		rows, err := db.Query(query, user.ID)
 		if err != nil {
 			return err
 		}
