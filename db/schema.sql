@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS reservations (
     reserved_at DATETIME(6)      NOT NULL,
     canceled_at DATETIME(6)      DEFAULT NULL,
     KEY event_id_and_sheet_id_idx (event_id, sheet_id),
-    INDEX reserved_and_canceled_idx (created_at, reserved_at)
+    INDEX user_id_idx (user_id),
+    INDEX reserved_and_canceled_idx (canceled_at, reserved_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
