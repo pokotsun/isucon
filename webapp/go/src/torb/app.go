@@ -652,6 +652,7 @@ func main() {
 		c.JSON(200, e)
 		return nil
 	}, adminLoginRequired)
+
 	e.GET("/admin/api/reports/events/:id/sales", func(c echo.Context) error {
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
@@ -671,6 +672,7 @@ func main() {
 		defer rows.Close()
 
 		var reports []Report
+		var event_price int64
 		for rows.Next() {
 			var reservation Reservation
 			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &event.Price); err != nil {
@@ -679,12 +681,12 @@ func main() {
 			sheet := getSheetFromID(reservation.SheetID)
 			report := Report {
 				ReservationID: reservation.ID,
-				EventID:       event.ID,
+				EventID:       eventID,
 				Rank:          sheet.Rank,
 				Num:           sheet.Num,
 				UserID:        reservation.UserID,
 				SoldAt:        reservation.ReservedAt.Format("2006-01-02T15:04:05.000000Z"),
-				Price:         event.Price + sheet.Price,
+				Price:         event_price + sheet.Price,
 			}
 			if reservation.CanceledAt != nil {
 				report.CanceledAt = reservation.CanceledAt.Format("2006-01-02T15:04:05.000000Z")
@@ -706,7 +708,10 @@ func main() {
 			var reservation Reservation
 			var sheet Sheet
 			var event Event
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num, &sheet.Price, &event.ID, &event.Price); err != nil {
+			if err := rows.Scan(&reservation.ID, &reservation.EventID,
+				 &reservation.SheetID, &reservation.UserID,
+				  &reservation.ReservedAt, &reservation.CanceledAt,
+				   &sheet.Rank, &sheet.Num, &sheet.Price, &event.ID, &event.Price); err != nil {
 				return err
 			}
 			report := Report{
