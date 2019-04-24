@@ -86,7 +86,7 @@ func getEvents(all bool) ([]*Event, error) {
 		if !all && !event.PublicFg {
 			continue
 		}
-		assignedEvent, err := getEventByID(event.ID, -1)
+		assignedEvent, err := getEvent(&event, -1)
 		if err != nil {
 			return nil, err
 		}
