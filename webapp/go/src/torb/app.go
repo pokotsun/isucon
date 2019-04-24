@@ -114,6 +114,28 @@ func getSheetFromID(id int64) Sheet {
 	}
 } 
 
+func getSheetIdFromRankAndNum(rank string, num int64) (int64, error) {
+	switch rank {
+	case "S":
+		if 0 < num && num <=50 {
+			return num, nil
+		}
+	case "A":
+		if 0 < num && num <= 150 {
+			return num + 50, nil
+		}
+	case "B":
+		if 0 < num && num <= 300 {
+			return num + 200, nil
+		}
+	case "C":
+		if 0 < num && num <= 500 {
+			return num + 500, nil
+		}
+	}	
+	return -1, sql.ErrNoRows
+}
+
 func getEvent(event *Event, loginUserID int64) (*Event, error) {
 	event.Sheets = map[string]*Sheets {
 		"S": &Sheets{},
@@ -539,6 +561,9 @@ func main() {
 			"sheet_num":  sheet.Num,
 		})
 	}, loginRequired)
+
+	// 次に問題の箇所
+	// 予約の削除
 	e.DELETE("/api/events/:id/sheets/:rank/:num/reservation", func(c echo.Context) error {
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
@@ -566,13 +591,22 @@ func main() {
 			return resError(c, "invalid_rank", 404)
 		}
 
-		var sheet Sheet
-		if err := db.QueryRow("SELECT * FROM sheets WHERE `rank` = ? AND num = ?", rank, num).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+		var sheet_id int64
+		num_i, _ := strconv.Atoi(num)
+		if sheet_id, err = getSheetIdFromRankAndNum(rank, int64(num_i)); err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "invalid_sheet", 404)
 			}
 			return err
 		}
+		sheet := getSheetFromID(sheet_id)
+
+		// if err := db.QueryRow("SELECT * FROM sheets WHERE `rank` = ? AND num = ?", rank, num).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+		// 	if err == sql.ErrNoRows {
+		// 		return resError(c, "invalid_sheet", 404)
+		// 	}
+		// 	return err
+		// }
 
 		tx, err := db.Begin()
 		if err != nil {
