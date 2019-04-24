@@ -324,11 +324,7 @@ func main() {
 		if user.ID != loginUser.ID {
 			return resError(c, "forbidden", 403)
 		}
-		// ここまでOK
-		// query := "SELECT r.id, r.event_id, r.reserved_at, r.canceled_at, r.sheet_id s.rank AS sheet_rank, s.num AS sheet_num" + 
-		// 	" FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id" + 
-		// 	" WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5"
-		
+
 		query := "SELECT id, event_id, sheet_id, reserved_at, canceled_at" + 
 			" FROM reservations WHERE user_id = ? ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5"
 		
@@ -339,6 +335,7 @@ func main() {
 		defer rows.Close()
 
 		var recentReservations []Reservation
+		var totalPrice int = 0
 		for rows.Next() {
 			var reservation Reservation
 			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID,
@@ -355,6 +352,7 @@ func main() {
 			event.Sheets = nil
 			event.Total = 0
 			event.Remains = 0
+			totalPrice += int(price)
 
 			reservation.Event = event
 			reservation.SheetRank = sheet.Rank
@@ -370,10 +368,10 @@ func main() {
 			recentReservations = make([]Reservation, 0)
 		}
 
-		var totalPrice int
-		if err := db.QueryRow("SELECT IFNULL(SUM(e.price + s.price), 0) FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.canceled_at IS NULL", user.ID).Scan(&totalPrice); err != nil {
-			return err
-		}
+		// var totalPrice int
+		// if err := db.QueryRow("SELECT IFNULL(SUM(e.price + s.price), 0) FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.canceled_at IS NULL", user.ID).Scan(&totalPrice); err != nil {
+		// 	return err
+		// }
 
 		rows, err = db.Query("SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5", user.ID)
 		if err != nil {
