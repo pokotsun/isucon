@@ -22,7 +22,6 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
-
 func loginRequired(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if _, err := getLoginUser(c); err != nil {
@@ -69,7 +68,8 @@ func getEvents(all bool) ([]*Event, error) {
 	}
 	defer tx.Commit()
 
-	rows, err := tx.Query("SELECT * FROM events ORDER BY id ASC")
+	// rows, err := tx.Query("SELECT * FROM events ORDER BY id ASC")
+	rows, err := tx.Query("SELECT * FROM events")
 	if err != nil {
 		return nil, err
 	}
@@ -97,43 +97,6 @@ func getEvents(all bool) ([]*Event, error) {
 	}
 
 	return events, nil
-}
-// sheetIDからsheet情報を取得
-func getSheetFromID(id int64) Sheet {
-	switch {
-	case (0 < id && id <= 50):
-		return Sheet{ ID: id, Rank:"S", Num: id, Price: 5000 }
-	case (50 < id && id <=200):
-		return Sheet{ ID: id, Rank:"A", Num: id-50, Price: 3000 }
-	case (200 < id && id <= 500):
-		return Sheet{ ID: id, Rank:"B", Num: id-200, Price: 1000 }
-	case (500 < id && id <= 1000):
-		return Sheet{ ID: id, Rank:"C", Num: id-500, Price: 0 }
-	default:
-		return Sheet{ ID: -1, Rank:"INVALID", Num:-1, Price:0}
-	}
-} 
-
-func getSheetIdFromRankAndNum(rank string, num int64) (int64, error) {
-	switch rank {
-	case "S":
-		if 0 < num && num <=50 {
-			return num, nil
-		}
-	case "A":
-		if 0 < num && num <= 150 {
-			return num + 50, nil
-		}
-	case "B":
-		if 0 < num && num <= 300 {
-			return num + 200, nil
-		}
-	case "C":
-		if 0 < num && num <= 500 {
-			return num + 500, nil
-		}
-	}	
-	return -1, sql.ErrNoRows
 }
 
 func getEvent(event *Event, loginUserID int64) (*Event, error) {
@@ -620,7 +583,8 @@ func main() {
 			return resError(c, "not_permitted", 403)
 		}
 
-		if _, err := tx.Exec("UPDATE reservations SET canceled_at = ? WHERE id = ?", time.Now().UTC().Format("2006-01-02 15:04:05.000000"), reservation.ID); err != nil {
+		if _, err := tx.Exec("UPDATE reservations SET canceled_at = ? WHERE id = ?",
+			time.Now().UTC().Format("2006-01-02 15:04:05.000000"), reservation.ID); err != nil {
 			tx.Rollback()
 			return err
 		}
