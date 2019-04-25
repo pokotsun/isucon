@@ -29,9 +29,10 @@ CREATE TABLE IF NOT EXISTS reservations (
     user_id     INTEGER UNSIGNED NOT NULL,
     reserved_at DATETIME(6)      NOT NULL,
     canceled_at DATETIME(6)      DEFAULT NULL,
-    INDEX event_id_idx (event_id),
     KEY event_id_and_sheet_id_idx (event_id, sheet_id),
     INDEX user_id_idx (user_id),
+    INDEX sheet_id_idx (sheet_id),
+    INDEX event_id_idx (event_id),
     INDEX canceled_at_idx (canceled_at),
     INDEX reserved_at_idx (reserved_at),
     INDEX reserved_and_canceled_idx (canceled_at, reserved_at)

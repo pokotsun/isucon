@@ -231,13 +231,11 @@ func main() {
 			}
 			sheet := getSheetFromID(reservation.SheetID)
 
-			// event, err := getEventByID(reservation.EventID, -1)
 			event, err := getEventOnly(reservation.EventID)
 
 			if err != nil {
 				return err
 			}
-			// price := event.Sheets[sheet.Rank].Price
 			price := event.Price + sheet.Price
 			
 			event.Sheets = nil
