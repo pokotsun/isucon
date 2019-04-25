@@ -389,7 +389,7 @@ func main() {
 			return resError(c, "invalid_rank", 400)
 		}
 
-		// var sheet Sheet
+		var sheet Sheet
 		var sheetID int64
 		var reservationID int64
 		for {
@@ -397,13 +397,12 @@ func main() {
 			query := "SELECT id FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1"
 			if err := db.QueryRow(query, event.ID, params.Rank).Scan(
 				&sheetID); err != nil {
-				// &sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
 				if err == sql.ErrNoRows {
 					return resError(c, "sold_out", 409)
 				}
 				return err
 			}
-			sheet := getSheetFromID(sheetID)
+			sheet = getSheetFromID(sheetID)
 
 			tx, err := db.Begin()
 			if err != nil {
