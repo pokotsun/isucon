@@ -43,6 +43,18 @@ func getEvents(all bool) ([]*Event, error) {
 	return events, nil
 }
 
+// Event情報だけをDBから取ってくる(予約情報とか席情報とか抜きで)
+func getEventOnly(eventID int64) (*Event, error) {
+	var event *Event
+	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", 
+		eventID).Scan(&event.ID, &event.Title, &event.PublicFg,
+			 &event.ClosedFg, &event.Price); err != nil {
+		return nil, err
+	}
+	return event, nil
+}
+
+// 予約情報なども用意したevent情報を取ってくる
 func getEvent(event *Event, loginUserID int64) (*Event, error) {
 	event.Sheets = map[string]*Sheets {
 		"S": &Sheets{},

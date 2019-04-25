@@ -358,6 +358,8 @@ func main() {
 		}
 		return c.JSON(200, sanitizeEvent(event))
 	})
+
+	// 問題のクエリがある箇所
 	e.POST("/api/events/:id/actions/reserve", func(c echo.Context) error {
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
@@ -373,7 +375,8 @@ func main() {
 			return err
 		}
 
-		event, err := getEventByID(eventID, user.ID)
+		// event, err := getEventByID(eventID, user.ID)
+		event, err := getEventOnly(eventID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "invalid_event", 404)
@@ -390,7 +393,8 @@ func main() {
 		var sheet Sheet
 		var reservationID int64
 		for {
-			if err := db.QueryRow("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1", event.ID, params.Rank).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+			query := "SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1"
+			if err := db.QueryRow(query, event.ID, params.Rank).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
 				if err == sql.ErrNoRows {
 					return resError(c, "sold_out", 409)
 				}
