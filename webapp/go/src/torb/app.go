@@ -212,7 +212,7 @@ func main() {
 		if user.ID != loginUser.ID {
 			return resError(c, "forbidden", 403)
 		}
-		query := "SELECT event_id, sheet_id, reserved_at, canceled_at" + 
+		query := "SELECT id, event_id, sheet_id, reserved_at, canceled_at" + 
 			" FROM reservations WHERE user_id = ? ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5"
 		
 		rows, err := db.Query(query, user.ID)
@@ -225,7 +225,7 @@ func main() {
 		var totalPrice int = 0 // チケットの総計値段
 		for rows.Next() {
 			var reservation Reservation
-			if err := rows.Scan(&reservation.EventID, &reservation.SheetID,
+			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID,
 				&reservation.ReservedAt, &reservation.CanceledAt); err != nil {
 				return err
 			}
