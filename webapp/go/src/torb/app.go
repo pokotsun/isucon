@@ -211,9 +211,11 @@ func main() {
 		}
 		if user.ID != loginUser.ID {
 			return resError(c, "forbidden", 403)
-		}
+		} 
+		// ここまででログインユーザー情報を取得
 
-		query := "SELECT id, event_id, sheet_id, reserved_at, canceled_at" + 
+		// 直近の予約を5件取ってくる(キャンセルしたのも含めて)
+		query := "SELECT event_id, sheet_id, reserved_at, canceled_at" + 
 			" FROM reservations WHERE user_id = ? ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5"
 		
 		rows, err := db.Query(query, user.ID)
@@ -222,22 +224,24 @@ func main() {
 		}
 		defer rows.Close()
 
-		// 直近の予約5件を取得
 		var recentReservations []Reservation
-		var totalPrice int = 0
+		var totalPrice int = 0 // チケットの総計値段
 		for rows.Next() {
 			var reservation Reservation
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID,
+			if err := rows.Scan(&reservation.EventID, &reservation.SheetID,
 				&reservation.ReservedAt, &reservation.CanceledAt); err != nil {
 				return err
 			}
 			sheet := getSheetFromID(reservation.SheetID)
 
-			event, err := getEventByID(reservation.EventID, -1)
+			// event, err := getEventByID(reservation.EventID, -1)
+			event, err := getEventOnly(reservation.EventID)
+
 			if err != nil {
 				return err
 			}
 			price := event.Sheets[sheet.Rank].Price
+			
 			event.Sheets = nil
 			event.Total = 0
 			event.Remains = 0
@@ -257,7 +261,9 @@ func main() {
 			recentReservations = make([]Reservation, 0)
 		}
 
-		rows, err = db.Query("SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5", user.ID)
+		// 直近の予約イベント情報を取ってきてる(event同士で被らないように)
+		query = "SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5"
+		rows, err = db.Query(query, user.ID)
 		if err != nil {
 			return err
 		}
