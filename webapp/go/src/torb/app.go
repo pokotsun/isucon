@@ -222,7 +222,7 @@ func main() {
 		defer rows.Close()
 
 		var recentReservations []Reservation
-		var totalPrice int = 0 // チケットの総計値段
+		var totalPrice int = 0 // チケットの値段総計
 		for rows.Next() {
 			var reservation Reservation
 			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID,
@@ -302,7 +302,9 @@ func main() {
 		c.Bind(&params)
 
 		user := new(User)
-		if err := db.QueryRow("SELECT * FROM users WHERE login_name = ?", params.LoginName).Scan(&user.ID, &user.LoginName, &user.Nickname, &user.PassHash); err != nil {
+		if err := db.QueryRow("SELECT * FROM users WHERE login_name = ?",
+			params.LoginName).Scan(
+				&user.ID, &user.LoginName, &user.Nickname, &user.PassHash); err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "authentication_failed", 401)
 			}
@@ -324,10 +326,12 @@ func main() {
 		}
 		return c.JSON(200, user)
 	})
+	
 	e.POST("/api/actions/logout", func(c echo.Context) error {
 		sessDeleteUserID(c)
 		return c.NoContent(204)
 	}, loginRequired)
+
 	e.GET("/api/events", func(c echo.Context) error {
 		events, err := getEvents(true)
 		if err != nil {
@@ -484,8 +488,9 @@ func main() {
 		}
 
 		var reservation Reservation
-		if err := tx.QueryRow("SELECT id, user_id, reserved_at FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE",
-			 event.ID, sheet.ID).Scan(&reservation.ID, &reservation.UserID, &reservation.ReservedAt); err != nil {
+		query := "SELECT id, user_id, reserved_at FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE"
+		if err := tx.QueryRow(query,event.ID, sheet.ID).Scan(
+			&reservation.ID, &reservation.UserID, &reservation.ReservedAt); err != nil {
 			tx.Rollback()
 			if err == sql.ErrNoRows {
 				return resError(c, "not_reserved", 400)
@@ -533,7 +538,8 @@ func main() {
 		c.Bind(&params)
 
 		administrator := new(Administrator)
-		if err := db.QueryRow("SELECT * FROM administrators WHERE login_name = ?", params.LoginName).Scan(&administrator.ID, &administrator.LoginName, &administrator.Nickname, &administrator.PassHash); err != nil {
+		if err := db.QueryRow("SELECT * FROM administrators WHERE login_name = ?", params.LoginName).Scan(
+			&administrator.ID, &administrator.LoginName, &administrator.Nickname, &administrator.PassHash); err != nil {
 			if err == sql.ErrNoRows {
 				return resError(c, "authentication_failed", 401)
 			}
