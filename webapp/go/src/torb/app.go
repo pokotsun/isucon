@@ -212,7 +212,6 @@ func main() {
 		if user.ID != loginUser.ID {
 			return resError(c, "forbidden", 403)
 		}
-
 		query := "SELECT id, event_id, sheet_id, reserved_at, canceled_at" + 
 			" FROM reservations WHERE user_id = ? ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5"
 		
