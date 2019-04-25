@@ -718,7 +718,6 @@ func main() {
 		var reports []Report
 		for rows.Next() {
 			var reservation Reservation
-			var sheet Sheet
 			var event Event
 			if err := rows.Scan(&reservation.ID, &reservation.EventID,
 				&reservation.SheetID, &reservation.UserID,
@@ -726,7 +725,7 @@ func main() {
 				&event.ID, &event.Price); err != nil {
 				return err
 			}
-			sheet = getSheetFromID(reservation.SheetID)
+			sheet := getSheetFromID(reservation.SheetID)
 			report := Report{
 				ReservationID: reservation.ID,
 				EventID:       event.ID,
