@@ -237,8 +237,8 @@ func main() {
 			if err != nil {
 				return err
 			}
-			// price := event.Sheets[sheet.Rank].Price
-			price := event.Price + sheet.Price
+			price := event.Sheets[sheet.Rank].Price
+			// price := event.Price + sheet.Price
 			
 			event.Sheets = nil
 			event.Total = 0
