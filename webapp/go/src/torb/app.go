@@ -89,9 +89,6 @@ func fillinAdministrator(next echo.HandlerFunc) echo.HandlerFunc {
 
 func validateRank(rank string) bool {
 	return (rank == "S" || rank == "A" || rank == "B" || rank == "C")
-	// var count int
-	// db.QueryRow("SELECT COUNT(*) FROM sheets WHERE `rank` = ?", rank).Scan(&count)
-	// return count > 0
 }
 
 type Renderer struct {
@@ -171,7 +168,10 @@ func main() {
 		}
 
 		var user User
-		if err := tx.QueryRow("SELECT * FROM users WHERE login_name = ?", params.LoginName).Scan(&user.ID, &user.LoginName, &user.Nickname, &user.PassHash); err != sql.ErrNoRows {
+		if err := tx.QueryRow("SELECT * FROM users WHERE login_name = ?", 
+			params.LoginName).Scan(
+				&user.ID, &user.LoginName,
+				&user.Nickname, &user.PassHash); err != sql.ErrNoRows {
 			tx.Rollback()
 			if err == nil {
 				return resError(c, "duplicated", 409)
@@ -222,6 +222,7 @@ func main() {
 		}
 		defer rows.Close()
 
+		// 直近の予約5件を取得
 		var recentReservations []Reservation
 		var totalPrice int = 0
 		for rows.Next() {
@@ -513,6 +514,7 @@ func main() {
 			"origin":        c.Scheme() + "://" + c.Request().Host,
 		})
 	}, fillinAdministrator)
+
 	e.POST("/admin/api/actions/login", func(c echo.Context) error {
 		var params struct {
 			LoginName string `json:"login_name"`
@@ -543,10 +545,12 @@ func main() {
 		}
 		return c.JSON(200, administrator)
 	})
+
 	e.POST("/admin/api/actions/logout", func(c echo.Context) error {
 		sessDeleteAdministratorID(c)
 		return c.NoContent(204)
 	}, adminLoginRequired)
+
 	e.GET("/admin/api/events", func(c echo.Context) error {
 		events, err := getEvents(true)
 		if err != nil {
@@ -659,13 +663,7 @@ func main() {
 			return resError(c, "not_found", 404)
 		}
 
-		// event, err := getEventByID(eventID, -1)
-		// if err != nil {
-		// 	return err
-		// }
-
 		query := "SELECT r.*, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ? ORDER BY reserved_at ASC FOR UPDATE"
-		// rows, err := db.Query(query, event.ID)
 		rows, err := db.Query(query, eventID)
 		if err != nil {
 			return err
