@@ -395,7 +395,8 @@ func main() {
 		for {
 			// ランダムにsheet情報を取っていく
 			// query := "SELECT id FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1"
-			query := "SELECT id FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? LIMIT 1"
+			// query := "SELECT id FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1"
+			query := "SELECT s.id FROM sheets AS s INNER JOIN reservations AS r ON s.id = r.sheet_id WHERE event_id= ? AND rank = ? AND canceled_at IS NOT NULL ORDER BY RAND() LIMIT 1"
 			if err := db.QueryRow(query, event.ID, params.Rank).Scan(
 				&sheetID); err != nil {
 				if err == sql.ErrNoRows {
