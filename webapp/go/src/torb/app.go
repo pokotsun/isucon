@@ -211,16 +211,8 @@ func main() {
 		}
 		if user.ID != loginUser.ID {
 			return resError(c, "forbidden", 403)
-<<<<<<< HEAD
 		}
-		query := "SELECT id, event_id, sheet_id, reserved_at, canceled_at" + 
-=======
-		} 
-		// ここまででログインユーザー情報を取得
-
-		// 直近の予約を5件取ってくる(キャンセルしたのも含めて)
 		query := "SELECT event_id, sheet_id, reserved_at, canceled_at" + 
->>>>>>> 89ac5f6cde39bb86496617060d256d6a298b2ded
 			" FROM reservations WHERE user_id = ? ORDER BY IFNULL(canceled_at, reserved_at) DESC LIMIT 5"
 		
 		rows, err := db.Query(query, user.ID)
