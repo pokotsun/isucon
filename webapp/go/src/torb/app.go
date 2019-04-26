@@ -716,7 +716,6 @@ func main() {
 
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
 		query := "SELECT r.*, e.id AS event_id, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id ORDER BY reserved_at ASC"
-		time.Sleep(time.Second * 15)
 		rows, err := db.Query(query)
 		if err != nil {
 			return err
