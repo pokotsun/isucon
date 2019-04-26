@@ -488,7 +488,10 @@ func main() {
 		}
 
 		var reservation Reservation
-		query := "SELECT id, user_id, reserved_at FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE"
+		// query := "SELECT id, user_id, reserved_at FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE"
+		query := "SELECT id, user_id, reserved_at" +
+		" FROM reservations WHERE event_id = ? AND sheet_id = ?" +
+		" AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE"		
 		if err := tx.QueryRow(query,event.ID, sheet.ID).Scan(
 			&reservation.ID, &reservation.UserID, &reservation.ReservedAt); err != nil {
 			tx.Rollback()
@@ -762,7 +765,7 @@ type Report struct {
 }
 
 func renderReportCSV(c echo.Context, reports []Report) error {
-	sort.Slice(reports, func(i, j int) bool { return strings.Compare(reports[i].SoldAt, reports[j].SoldAt) < 0 })
+	// sort.Slice(reports, func(i, j int) bool { return strings.Compare(reports[i].SoldAt, reports[j].SoldAt) < 0 })
 
 	body := bytes.NewBufferString("reservation_id,event_id,rank,num,price,user_id,sold_at,canceled_at\n")
 	for _, v := range reports {
