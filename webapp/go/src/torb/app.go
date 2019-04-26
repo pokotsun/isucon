@@ -400,7 +400,9 @@ func main() {
 		var reservationID int64
 		for {
 			// ランダムにsheet情報を取っていく
-			query := "SELECT id FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1"
+			// query := "SELECT id FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1"
+			query := "SELECT id FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL) AND `rank` = ? ORDER BY RAND() LIMIT 1"
+
 			if err := db.QueryRow(query, event.ID, params.Rank).Scan(
 				&sheetID); err != nil {
 				if err == sql.ErrNoRows {
@@ -491,7 +493,7 @@ func main() {
 		// query := "SELECT id, user_id, reserved_at FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE"
 		query := "SELECT id, user_id, reserved_at" +
 		" FROM reservations WHERE event_id = ? AND sheet_id = ?" +
-		" AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE"		
+		" AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at)"		
 		if err := tx.QueryRow(query,event.ID, sheet.ID).Scan(
 			&reservation.ID, &reservation.UserID, &reservation.ReservedAt); err != nil {
 			tx.Rollback()
@@ -682,7 +684,8 @@ func main() {
 			return resError(c, "not_found", 404)
 		}
 
-		query := "SELECT r.*, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ? ORDER BY reserved_at ASC FOR UPDATE"
+		// query := "SELECT r.*, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ? ORDER BY reserved_at ASC FOR UPDATE"
+		query := "SELECT r.*, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ? ORDER BY reserved_at ASC"
 		rows, err := db.Query(query, eventID)
 		if err != nil {
 			return err
@@ -715,7 +718,9 @@ func main() {
 	}, adminLoginRequired)
 
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
-		query := "SELECT r.*, e.id AS event_id, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id ORDER BY reserved_at ASC FOR UPDATE"
+		// query := "SELECT r.*, e.id AS event_id, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id ORDER BY reserved_at ASC FOR UPDATE"
+		query := "SELECT r.*, e.id AS event_id, e.price AS event_price FROM reservations r INNER JOIN events e ON e.id = r.event_id ORDER BY reserved_at ASC"
+
 		rows, err := db.Query(query)
 		if err != nil {
 			return err
