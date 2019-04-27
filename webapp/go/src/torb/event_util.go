@@ -68,7 +68,7 @@ func getEvent(event *Event, loginUserID int64) (*Event, error) {
 	// sheetの全件をセットしていく
 	for i:= 1; i<=1000; i++ {
 		sheet := getSheetFromID(int64(i))
-		event.Sheets[sheet.Rank].Detail[sheet.Num] = &sheet
+		event.Sheets[sheet.Rank].Detail[sheet.Num-1] = &sheet
 	}
 
 	query := "SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)"
