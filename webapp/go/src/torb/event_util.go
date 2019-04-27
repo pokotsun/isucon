@@ -43,6 +43,7 @@ func getEvents(all bool) ([]*Event, error) {
 	return events, nil
 }
 
+
 // Event情報だけをDBから取ってくる(予約情報とか席情報とか抜きで)
 func getEventOnly(eventID int64) (*Event, error) {
 	var event Event
@@ -56,20 +57,18 @@ func getEventOnly(eventID int64) (*Event, error) {
 
 // 予約情報なども用意したevent情報を取ってくる
 func getEvent(event *Event, loginUserID int64) (*Event, error) {
+	event.Remains = 1000
 	event.Sheets = map[string]*Sheets {
-		"S": &Sheets{},
-		"A": &Sheets{},
-		"B": &Sheets{},
-		"C": &Sheets{},
+		"S": &Sheets{Total: 50, Remains: 50, Price: 5000 + event.Price, Detail: make([]*Sheet, 50)},
+		"A": &Sheets{Total: 150, Remains: 150, Price: 3000 + event.Price, Detail: make([]*Sheet, 150)},
+		"B": &Sheets{Total: 300, Remains: 300, Price: 1000 + event.Price, Detail: make([]*Sheet, 300)},
+		"C": &Sheets{Total: 500, Remains: 500, Price: event.Price, Detail: make([]*Sheet, 500)},
 	}
 
 	// sheetの全件をセットしていく
 	for i:= 1; i<=1000; i++ {
 		sheet := getSheetFromID(int64(i))
-		event.Sheets[sheet.Rank].Price = event.Price + sheet.Price
-		event.Total++
-		event.Sheets[sheet.Rank].Total++
-		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
+		event.Sheets[sheet.Rank].Detail[sheet.Num] = &sheet
 	}
 
 	query := "SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)"
@@ -77,11 +76,6 @@ func getEvent(event *Event, loginUserID int64) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	event.Remains = 1000
-	event.Sheets["S"].Remains = 50
-	event.Sheets["A"].Remains = 150
-	event.Sheets["B"].Remains = 300
-	event.Sheets["C"].Remains = 500
 
 	// 現状予約として有効なreservationだけ取得する
 	for rows.Next() {
