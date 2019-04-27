@@ -58,6 +58,7 @@ func getEventOnly(eventID int64) (*Event, error) {
 // 予約情報なども用意したevent情報を取ってくる
 func getEvent(event *Event, loginUserID int64) (*Event, error) {
 	event.Remains = 1000
+	event.Total = 1000
 	event.Sheets = map[string]*Sheets {
 		"S": &Sheets{Total: 50, Remains: 50, Price: 5000 + event.Price, Detail: make([]*Sheet, 50)},
 		"A": &Sheets{Total: 150, Remains: 150, Price: 3000 + event.Price, Detail: make([]*Sheet, 150)},
