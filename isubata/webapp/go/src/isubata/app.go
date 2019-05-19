@@ -103,7 +103,7 @@ func queryMessagesWithUser(chanID, lastID int64) ([]Message, []User, error) {
 		"SELECT message.id, channel_id, user_id, content, message.created_at," +
 		" name, display_name, avatar_icon FROM message" +
 		" INNER JOIN user ON message.user_id = user.id" +
-		" WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
+		" WHERE message.id > ? AND channel_id = ? ORDER BY message.id DESC LIMIT 100",
 		lastID, chanID)
 	defer rows.Close();
 	for rows.Next() {
