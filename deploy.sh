@@ -2,6 +2,7 @@
 
 git reset --hard HEAD && git pull origin app/divide-app-code
 sudo ./isubata/db/init.sh
+zcat ~/isubata/bench/isucon7q-initial-dataset.sql.gz | sudo mysql isubata
 cd isubata/webapp/go && make
 cd ../../..
 ## logからデータを削除
