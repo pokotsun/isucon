@@ -336,16 +336,19 @@ func queryChannels() ([]int64, error) {
 }
 
 func queryHaveRead(userID, chID int64) (int64, error) {
-	type HaveRead struct {
-		UserID    int64     `db:"user_id"`
-		ChannelID int64     `db:"channel_id"`
-		MessageID int64     `db:"message_id"`
-		UpdatedAt time.Time `db:"updated_at"`
-		CreatedAt time.Time `db:"created_at"`
-	}
-	h := HaveRead{}
+	//type HaveRead struct {
+	//	UserID    int64     `db:"user_id"`
+	//	ChannelID int64     `db:"channel_id"`
+	//	MessageID int64     `db:"message_id"`
+	//	UpdatedAt time.Time `db:"updated_at"`
+	//	CreatedAt time.Time `db:"created_at"`
+	//}
+	//h := HaveRead{}
 
-	err := db.Get(&h, "SELECT * FROM haveread WHERE user_id = ? AND channel_id = ?",
+	//err := db.Get(&h, "SELECT * FROM haveread WHERE user_id = ? AND channel_id = ?",
+	//	userID, chID)
+	var messageID int64
+	err := db.Get(messageID, "SELECT message_id FROM haveread WHERE user_id = ? AND channel_id = ?",
 		userID, chID)
 
 	if err == sql.ErrNoRows {
@@ -353,7 +356,8 @@ func queryHaveRead(userID, chID int64) (int64, error) {
 	} else if err != nil {
 		return 0, err
 	}
-	return h.MessageID, nil
+	//return h.MessageID, nil
+	return messageID, nil
 }
 
 //TODO なんか遅い
@@ -365,7 +369,7 @@ func fetchUnread(c echo.Context) error {
 
 	time.Sleep(time.Second)
 
-	channels, err := queryChannels()
+	channels, err := queryChannels() // TODO
 	if err != nil {
 		return err
 	}
@@ -373,7 +377,7 @@ func fetchUnread(c echo.Context) error {
 	resp := []map[string]interface{}{}
 
 	for _, chID := range channels {
-		lastID, err := queryHaveRead(userID, chID)
+		lastID, err := queryHaveRead(userID, chID) // TODO
 		if err != nil {
 			return err
 		}
