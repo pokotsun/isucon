@@ -86,11 +86,37 @@ func init() {
 }
 
 
+// messageをゲット
 func queryMessages(chanID, lastID int64) ([]Message, error) {
 	msgs := []Message{}
 	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
 		lastID, chanID)
 	return msgs, err
+}
+
+// Messageをuserといっしょに取ってくる
+func queryMessagesWithUser(chanID, lastID int64) ([]Message, []User, error) {
+	msgs := []Message{}
+	users := []User{}
+
+	rows, err := db.Query(
+		"SELECT * FROM message INNER JOIN user ON message.user_id = user.id WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
+		lastID, chanID)
+	defer rows.Close();
+	for rows.Next() {
+		var m Message
+		var u User
+		if err := rows.Scan(
+			&m.ID, &m.ChannelID, &m.UserID, &m.Content, &m.CreatedAt,
+			&u.ID, &u.Name, &u.Salt, &u.Password, &u.DisplayName, &u.AvatarIcon,
+			&u.CreatedAt,
+		); err != nil {
+			return msgs, users, err
+		}
+		msgs = append(msgs, m)
+		users = append(users, u)
+	}
+	return msgs, users, err
 }
 
 func sessUserID(c echo.Context) int64 {
@@ -284,6 +310,15 @@ func jsonifyMessage(m Message) (map[string]interface{}, error) {
 		return nil, err
 	}
 
+	r := make(map[string]interface{})
+	r["id"] = m.ID
+	r["user"] = u
+	r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
+	r["content"] = m.Content
+	return r, nil
+}
+
+func jsonifyMessageWithUser(m Message, u User) (map[string]interface{}, error) {
 	r := make(map[string]interface{})
 	r["id"] = m.ID
 	r["user"] = u
