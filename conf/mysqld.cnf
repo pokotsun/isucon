@@ -24,7 +24,7 @@
 socket		= /var/run/mysqld/mysqld.sock
 nice		= 0
 slow_query_log=ON
-long_query_time = 0.3
+long_query_time = 0.001
 slow_query_log_file = /tmp/mysql-slow.sql
 log-error=/var/log/mariadb/mariadb.log
 
