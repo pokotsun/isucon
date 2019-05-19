@@ -307,22 +307,6 @@ func postMessage(c echo.Context) error {
 	return c.NoContent(204)
 }
 
-func jsonifyMessage(m Message) (map[string]interface{}, error) {
-	u := User{}
-	err := db.Get(&u, "SELECT name, display_name, avatar_icon FROM user WHERE id = ?",
-		m.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make(map[string]interface{})
-	r["id"] = m.ID
-	r["user"] = u
-	r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
-	r["content"] = m.Content
-	return r, nil
-}
-
 func jsonifyMessageWithUser(m Message, u User) (map[string]interface{}, error) {
 	r := make(map[string]interface{})
 	r["id"] = m.ID
@@ -340,17 +324,6 @@ func queryChannels() ([]int64, error) {
 }
 
 func queryHaveRead(userID, chID int64) (int64, error) {
-	//type HaveRead struct {
-	//	UserID    int64     `db:"user_id"`
-	//	ChannelID int64     `db:"channel_id"`
-	//	MessageID int64     `db:"message_id"`
-	//	UpdatedAt time.Time `db:"updated_at"`
-	//	CreatedAt time.Time `db:"created_at"`
-	//}
-	//h := HaveRead{}
-
-	//err := db.Get(&h, "SELECT * FROM haveread WHERE user_id = ? AND channel_id = ?",
-	//	userID, chID)
 	var messageID int64
 	err := db.Get(&messageID, "SELECT message_id FROM haveread WHERE user_id = ? AND channel_id = ?",
 		userID, chID)
@@ -472,7 +445,6 @@ func getHistory(c echo.Context) error {
 
 	mjson := make([]map[string]interface{}, 0)
 	for i := len(messages) - 1; i >= 0; i-- {
-		//r, err := jsonifyMessage(messages[i])
 		r, err := jsonifyMessageWithUser(messages[i], users[i])
 		if err != nil {
 			return err
