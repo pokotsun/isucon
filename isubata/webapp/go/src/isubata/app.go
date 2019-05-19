@@ -333,7 +333,6 @@ func queryHaveRead(userID, chID int64) (int64, error) {
 	} else if err != nil {
 		return 0, err
 	}
-	//return h.MessageID, nil
 	return messageID, nil
 }
 
