@@ -23,6 +23,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/middleware"
+
+	"github.com/patrickmn/go-cache"
 )
 
 const (
@@ -32,6 +34,7 @@ const (
 var (
 	db            *sqlx.DB
 	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
+	imageCache = cache.New(5*time.Minute, 10*time.Minute)
 )
 
 
@@ -628,15 +631,22 @@ func postProfile(c echo.Context) error {
 }
 
 func getIcon(c echo.Context) error {
-	var name string
+	//var name string
+	name := c.Param("file_name")
 	var data []byte
-	err := db.QueryRow("SELECT name, data FROM image WHERE name = ?",
-		c.Param("file_name")).Scan(&name, &data)
-	if err == sql.ErrNoRows {
-		return echo.ErrNotFound
-	}
-	if err != nil {
-		return err
+	data_i, found := imageCache.Get(name)
+	if found {
+		data, _ = data_i.([]byte)
+	} else {
+		err := db.QueryRow("SELECT data FROM image WHERE name = ?",
+			name).Scan(&data)
+		if err == sql.ErrNoRows {
+			return echo.ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		imageCache.Set(name, data, cache.DefaultExpiration)
 	}
 
 	mime := ""
