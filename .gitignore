@@ -3,6 +3,7 @@
 .bash_logout
 .profile
 .viminfo
+.gitconfig
 local/
 xbuild/
 go/
