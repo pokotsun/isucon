@@ -429,7 +429,7 @@ func getHistory(c echo.Context) error {
 
 	const N = 20
 	var cnt int64
-	err = db.Get(&cnt, "SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?", chID)
+	err = db.Get(&cnt, "SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?", chID)
 	if err != nil {
 		return err
 	}
@@ -442,16 +442,35 @@ func getHistory(c echo.Context) error {
 	}
 
 	messages := []Message{}
-	err = db.Select(&messages,
-		"SELECT * FROM message WHERE channel_id = ? ORDER BY id DESC LIMIT ? OFFSET ?",
+	users := []User{}
+	rows, err := db.Query(
+		"SELECT message.id, channel_id, user_id, content, message.created_at," +
+		" name, display_name, avatar_icon FROM message" +
+		" INNER JOIN user ON message.user_id = user.id" +
+		" WHERE channel_id = ?" +
+		" ORDER BY message.id DESC LIMIT ? OFFSET ?",
 		chID, N, (page-1)*N)
+	defer rows.Close();
 	if err != nil {
 		return err
+	}
+	for rows.Next() {
+		var m Message
+		var u User
+		if err := rows.Scan(
+			&m.ID, &m.ChannelID, &m.UserID, &m.Content, &m.CreatedAt,
+			&u.Name, &u.DisplayName, &u.AvatarIcon,
+		); err != nil {
+			return err
+		}
+		messages = append(messages, m)
+		users = append(users, u)
 	}
 
 	mjson := make([]map[string]interface{}, 0)
 	for i := len(messages) - 1; i >= 0; i-- {
-		r, err := jsonifyMessage(messages[i])
+		//r, err := jsonifyMessage(messages[i])
+		r, err := jsonifyMessageWithUser(messages[i], users[i])
 		if err != nil {
 			return err
 		}
