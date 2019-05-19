@@ -23,10 +23,6 @@
 [mysqld_safe]
 socket		= /var/run/mysqld/mysqld.sock
 nice		= 0
-slow_query_log=ON
-long_query_time = 0.001
-slow_query_log_file = /tmp/mysql-slow.sql
-log-error=/var/log/mariadb/mariadb.log
 
 [mysqld]
 #
@@ -41,6 +37,11 @@ datadir		= /var/lib/mysql
 tmpdir		= /tmp
 lc-messages-dir	= /usr/share/mysql
 skip-external-locking
+
+slow_query_log=ON
+long_query_time = 0.001
+slow_query_log_file = /tmp/mysql-slow.sql
+log-error=/var/log/mariadb/mariadb.log
 #
 # Instead of skip-networking the default is now to listen only on
 # localhost which is more compatible and is not less secure.
