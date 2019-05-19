@@ -1,6 +1,5 @@
 #!/bin/bash
 
-export $PATH="/home/isucon/local/go/bin/:$PATH"
 git reset --hard HEAD && git pull origin infra/manage-conf
 cd isubata/webapp/go && make
 cd ../../..
