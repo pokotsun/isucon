@@ -1,6 +1,7 @@
 #!/bin/bash
 
-git reset --hard HEAD && git pull origin infra/manage-conf
+git reset --hard HEAD && git pull origin app/divide-app-code
+sudo ./isubata/db/init.sh
 cd isubata/webapp/go && make
 cd ../../..
 ## logからデータを削除
