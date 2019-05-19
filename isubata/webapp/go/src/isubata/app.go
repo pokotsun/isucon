@@ -100,7 +100,10 @@ func queryMessagesWithUser(chanID, lastID int64) ([]Message, []User, error) {
 	users := []User{}
 
 	rows, err := db.Query(
-		"SELECT * FROM message INNER JOIN user ON message.user_id = user.id WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
+		"SELECT message.id, channel_id, user_id, content, message.created_at," +
+		" name, display_name, avatar_icon FROM message" +
+		" INNER JOIN user ON message.user_id = user.id" +
+		" WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
 		lastID, chanID)
 	defer rows.Close();
 	for rows.Next() {
@@ -108,8 +111,7 @@ func queryMessagesWithUser(chanID, lastID int64) ([]Message, []User, error) {
 		var u User
 		if err := rows.Scan(
 			&m.ID, &m.ChannelID, &m.UserID, &m.Content, &m.CreatedAt,
-			&u.ID, &u.Name, &u.Salt, &u.Password, &u.DisplayName, &u.AvatarIcon,
-			&u.CreatedAt,
+			&u.Name, &u.DisplayName, &u.AvatarIcon,
 		); err != nil {
 			return msgs, users, err
 		}
