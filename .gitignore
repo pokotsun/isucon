@@ -6,4 +6,4 @@
 .gitconfig
 local/
 xbuild/
-go/
+/go/
