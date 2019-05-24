@@ -29,7 +29,7 @@ func addMessage(channelID, userID int64, content string) (int64, error) {
 	}
 	// channel部にメッセージのトータルを追加
 	if _, err = tx.Exec(
-		"UPDATE channel SET num_messages = num_messages + 1 WHERE channel_id = ?",
+		"UPDATE channel SET num_messages = num_messages + 1 WHERE id = ?",
 		channelID); err != nil {
 		tx.Rollback()
 		return 0, err
