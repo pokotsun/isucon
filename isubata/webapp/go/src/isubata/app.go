@@ -193,6 +193,18 @@ func register(name, password string) (int64, error) {
 	return res.LastInsertId()
 }
 
+func initNumMessages() error {
+	channels := queryChannels()
+	for _, chID := range channels {
+		if _, err := db.Exec(
+			"UPDATE channel SET num_messages = (SELECT COUNT(id) FROM message WHERE channel_id=?) WHERE id=?",
+			chID, chID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // request handlers
 func getInitialize(c echo.Context) error {
 	db.MustExec("DELETE FROM user WHERE id > 1000")
@@ -200,6 +212,7 @@ func getInitialize(c echo.Context) error {
 	db.MustExec("DELETE FROM channel WHERE id > 10")
 	db.MustExec("DELETE FROM message WHERE id > 10000")
 	db.MustExec("DELETE FROM haveread")
+	initNumMessages()
 	return c.String(204, "")
 }
 
@@ -311,12 +324,6 @@ func jsonifyMessageWithUser(m Message, u User) (map[string]interface{}, error) {
 	r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
 	r["content"] = m.Content
 	return r, nil
-}
-
-func queryChannels() ([]int64, error) {
-	res := []int64{}
-	err := db.Select(&res, "SELECT id FROM channel")
-	return res, err
 }
 
 func queryHaveRead(userID, chID int64) (int64, error) {
