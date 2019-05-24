@@ -205,6 +205,21 @@ func initNumMessages() error {
 	return nil
 }
 
+func convertDBImageToFile() {
+	var images []struct {
+		Name string
+		Data []byte
+	}
+	db.Select(&images, "SELECT name, data FROM image")
+
+	for _, image := range images {
+		err := ioutil.WriteFile("/home/isucon/isubata/webapp/public/"+images.Name, images.Data, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
 // request handlers
 func getInitialize(c echo.Context) error {
 	db.MustExec("DELETE FROM user WHERE id > 1000")
@@ -213,6 +228,7 @@ func getInitialize(c echo.Context) error {
 	db.MustExec("DELETE FROM message WHERE id > 10000")
 	db.MustExec("DELETE FROM haveread")
 	initNumMessages()
+	convertDBImageToFile()
 	return c.String(204, "")
 }
 
@@ -588,6 +604,7 @@ func postProfile(c echo.Context) error {
 		avatarName = fmt.Sprintf("%x%s", sha1.Sum(avatarData), ext)
 	}
 
+	// TODO replace image
 	if avatarName != "" && len(avatarData) > 0 {
 		_, err := db.Exec("INSERT INTO image (name, data) VALUES (?, ?)", avatarName, avatarData)
 		if err != nil {
