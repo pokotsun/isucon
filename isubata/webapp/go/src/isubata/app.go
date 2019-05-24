@@ -29,7 +29,7 @@ import (
 
 const (
 	avatarMaxBytes = 1 * 1024 * 1024
-	iconPath       = "/home/isucon/isubata/webapp/public/icon/"
+	iconPath       = "/home/isucon/isubata/webapp/public/icons/"
 )
 
 var (
