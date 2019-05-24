@@ -611,9 +611,7 @@ func postProfile(c echo.Context) error {
 		avatarName = fmt.Sprintf("%x%s", sha1.Sum(avatarData), ext)
 	}
 
-	// TODO replace image
 	if avatarName != "" && len(avatarData) > 0 {
-		//_, err := db.Exec("INSERT INTO image (name, data) VALUES (?, ?)", avatarName, avatarData)
 		err := WriteIconToFile(avatarName, avatarData)
 		if err != nil {
 			return err
@@ -632,39 +630,6 @@ func postProfile(c echo.Context) error {
 	}
 
 	return c.Redirect(http.StatusSeeOther, "/")
-}
-
-func getIcon(c echo.Context) error {
-	//var name string
-	name := c.Param("file_name")
-	var data []byte
-	data_i, found := imageCache.Get(name)
-	if found {
-		data, _ = data_i.([]byte)
-	} else {
-		err := db.QueryRow("SELECT data FROM image WHERE name = ?",
-			name).Scan(&data)
-		if err == sql.ErrNoRows {
-			return echo.ErrNotFound
-		}
-		if err != nil {
-			return err
-		}
-		imageCache.Set(name, data, cache.DefaultExpiration)
-	}
-
-	mime := ""
-	switch true {
-	case strings.HasSuffix(name, ".jpg"), strings.HasSuffix(name, ".jpeg"):
-		mime = "image/jpeg"
-	case strings.HasSuffix(name, ".png"):
-		mime = "image/png"
-	case strings.HasSuffix(name, ".gif"):
-		mime = "image/gif"
-	default:
-		return echo.ErrNotFound
-	}
-	return c.Blob(http.StatusOK, mime, data)
 }
 
 func tAdd(a, b int64) int64 {
