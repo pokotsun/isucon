@@ -400,7 +400,7 @@ func getHistory(c echo.Context) error {
 
 	const N = 20
 	var cnt int64
-	err = db.Get(^cnt, "SELECT num_messages as cnt FROM channel WHERE id = ?", chID)
+	err = db.Get(&cnt, "SELECT num_messages as cnt FROM channel WHERE id = ?", chID)
 	//err = db.Get(&cnt, "SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?", chID)
 	if err != nil {
 		return err
