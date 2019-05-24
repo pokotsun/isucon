@@ -446,9 +446,9 @@ func getHistory(c echo.Context) error {
 		mjson = append(mjson, r)
 	}
 
-	channels := []ChannelInfo{}
+	//channels := []ChannelInfo{}
 	//err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
-	channels, err := queryChannels()
+	channels, err := queryChannelsOrderById()
 	if err != nil {
 		return err
 	}
@@ -471,7 +471,7 @@ func getProfile(c echo.Context) error {
 
 	//channels := []ChannelInfo{}
 	//err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
-	channels, err := queryChannels()
+	channels, err := queryChannelsOrderById()
 	if err != nil {
 		return err
 	}
@@ -504,7 +504,7 @@ func getAddChannel(c echo.Context) error {
 	//channels := []ChannelInfo{}
 	//err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
 	//err = db.Select(&channels, "SELECT * FROM channel")
-	channels, err := queryChannels()
+	channels, err := queryChannelsOrderById()
 	if err != nil {
 		return err
 	}

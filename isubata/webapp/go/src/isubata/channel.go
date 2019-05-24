@@ -15,7 +15,7 @@ type ChannelInfo struct {
 	CreatedAt   time.Time `db:"created_at"`
 }
 
-func queryChannels() ([]ChannelInfo, error) {
+func queryChannelsOrderById() ([]ChannelInfo, error) {
 	channels := []ChannelInfo{}
 	err := db.Select(&channels, "SELECT id, name, description, updated_at, created_at FROM channel ORDER BY id")
 	return channels, err
