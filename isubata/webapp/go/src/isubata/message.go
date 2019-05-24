@@ -28,10 +28,9 @@ func addMessage(channelID, userID int64, content string) (int64, error) {
 		return 0, err
 	}
 	// channel部にメッセージのトータルを追加
-	res, err := tx.Exec(
+	if _, err := tx.Exec(
 		"UPDATE channel SET num_messages = num_messages + 1 WHERE channel_id = ?",
-		channelID)
-	if err != nil {
+		channelID); err != nil {
 		tx.Rollback()
 		return 0, err
 	}
