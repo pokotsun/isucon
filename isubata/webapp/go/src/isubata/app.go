@@ -213,7 +213,7 @@ func convertDBImageToFile() {
 	db.Select(&images, "SELECT name, data FROM image")
 
 	for _, image := range images {
-		err := ioutil.WriteFile("/home/isucon/isubata/webapp/public/images/"+images.Name, images.Data, 0644)
+		err := ioutil.WriteFile("/home/isucon/isubata/webapp/public/images/"+image.Name, image.Data, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
