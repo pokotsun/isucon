@@ -194,7 +194,7 @@ func register(name, password string) (int64, error) {
 }
 
 func initNumMessages() error {
-	channels := queryChannels()
+	channels, _ := queryChannels()
 	for _, chID := range channels {
 		if _, err := db.Exec(
 			"UPDATE channel SET num_messages = (SELECT COUNT(id) FROM message WHERE channel_id=?) WHERE id=?",
