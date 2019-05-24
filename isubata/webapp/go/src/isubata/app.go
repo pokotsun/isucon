@@ -29,6 +29,7 @@ import (
 
 const (
 	avatarMaxBytes = 1 * 1024 * 1024
+	iconPath       = "/home/isucon/isubata/webapp/public/images/"
 )
 
 var (
@@ -213,11 +214,17 @@ func convertDBImageToFile() {
 	db.Select(&images, "SELECT name, data FROM image")
 
 	for _, image := range images {
-		err := ioutil.WriteFile("/home/isucon/isubata/webapp/public/images/"+image.Name, image.Data, 0644)
+		err := WriteIconToFile(image.Name, image.Data)
+		//err := ioutil.WriteFile("/home/isucon/isubata/webapp/public/images/"+image.Name, image.Data, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
+}
+
+func WriteIconToFile(name string, data []byte) error {
+	err := ioutil.WriteFile(iconPath+name, data, 0644)
+	return err
 }
 
 // request handlers
