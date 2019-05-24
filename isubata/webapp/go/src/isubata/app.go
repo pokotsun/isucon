@@ -34,17 +34,16 @@ const (
 var (
 	db            *sqlx.DB
 	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
-	imageCache = cache.New(5*time.Minute, 10*time.Minute)
+	imageCache    = cache.New(5*time.Minute, 10*time.Minute)
 )
-
 
 type Renderer struct {
 	templates *template.Template
 }
+
 func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return r.templates.ExecuteTemplate(w, name, data)
 }
-
 
 // DB関係の初期化
 func init() {
@@ -88,7 +87,6 @@ func init() {
 	log.Printf("Succeeded to connect db.")
 }
 
-
 // messageをゲット
 func queryMessages(chanID, lastID int64) ([]Message, error) {
 	msgs := []Message{}
@@ -103,12 +101,12 @@ func queryMessagesWithUser(chanID, lastID int64) ([]Message, []User, error) {
 	users := []User{}
 
 	rows, err := db.Query(
-		"SELECT message.id, channel_id, user_id, content, message.created_at," +
-		" name, display_name, avatar_icon FROM message" +
-		" INNER JOIN user ON message.user_id = user.id" +
-		" WHERE message.id > ? AND channel_id = ? ORDER BY message.id DESC LIMIT 100",
+		"SELECT message.id, channel_id, user_id, content, message.created_at,"+
+			" name, display_name, avatar_icon FROM message"+
+			" INNER JOIN user ON message.user_id = user.id"+
+			" WHERE message.id > ? AND channel_id = ? ORDER BY message.id DESC LIMIT 100",
 		lastID, chanID)
-	defer rows.Close();
+	defer rows.Close()
 	for rows.Next() {
 		var m Message
 		var u User
@@ -216,7 +214,6 @@ func getIndex(c echo.Context) error {
 	})
 }
 
-
 func getRegister(c echo.Context) error {
 	return c.Render(http.StatusOK, "register", map[string]interface{}{
 		"ChannelID": 0,
@@ -316,7 +313,6 @@ func jsonifyMessageWithUser(m Message, u User) (map[string]interface{}, error) {
 	return r, nil
 }
 
-
 func queryChannels() ([]int64, error) {
 	res := []int64{}
 	err := db.Select(&res, "SELECT id FROM channel")
@@ -365,8 +361,7 @@ func fetchUnread(c echo.Context) error {
 				chID, lastID)
 		} else {
 			err = db.Get(&cnt,
-				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?",
-				chID)
+				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?", chID)
 		}
 		if err != nil {
 			return err
@@ -419,13 +414,13 @@ func getHistory(c echo.Context) error {
 	messages := []Message{}
 	users := []User{}
 	rows, err := db.Query(
-		"SELECT message.id, channel_id, user_id, content, message.created_at," +
-		" name, display_name, avatar_icon FROM message" +
-		" INNER JOIN user ON message.user_id = user.id" +
-		" WHERE channel_id = ?" +
-		" ORDER BY message.id DESC LIMIT ? OFFSET ?",
+		"SELECT message.id, channel_id, user_id, content, message.created_at,"+
+			" name, display_name, avatar_icon FROM message"+
+			" INNER JOIN user ON message.user_id = user.id"+
+			" WHERE channel_id = ?"+
+			" ORDER BY message.id DESC LIMIT ? OFFSET ?",
 		chID, N, (page-1)*N)
-	defer rows.Close();
+	defer rows.Close()
 	if err != nil {
 		return err
 	}

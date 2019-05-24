@@ -1,10 +1,10 @@
 package main
 
-import(
-	"time"
+import (
 	"github.com/labstack/echo"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type Message struct {
@@ -16,12 +16,29 @@ type Message struct {
 }
 
 func addMessage(channelID, userID int64, content string) (int64, error) {
-	res, err := db.Exec(
-		"INSERT INTO message (channel_id, user_id, content, created_at) VALUES (?, ?, ?, NOW())",
-		channelID, userID, content)
+	tx, err := db.Begin()
 	if err != nil {
 		return 0, err
 	}
+	res, err := tx.Exec(
+		"INSERT INTO message (channel_id, user_id, content, created_at) VALUES (?, ?, ?, NOW())",
+		channelID, userID, content)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+	// channel部にメッセージのトータルを追加
+	res, err := tx.Exec(
+		"UPDATE channel SET num_messages = num_messages + 1 WHERE channel_id = ?",
+		channelID)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+
 	return res.LastInsertId()
 }
 
@@ -60,8 +77,8 @@ func getMessage(c echo.Context) error {
 	if len(messages) > 0 {
 		_, err := db.Exec(
 			"INSERT INTO haveread (user_id, channel_id, message_id, updated_at, created_at)"+
-			" VALUES (?, ?, ?, NOW(), NOW())"+
-			" ON DUPLICATE KEY UPDATE message_id = ?, updated_at = NOW()",
+				" VALUES (?, ?, ?, NOW(), NOW())"+
+				" ON DUPLICATE KEY UPDATE message_id = ?, updated_at = NOW()",
 			userID, chanID, messages[0].ID, messages[0].ID)
 		if err != nil {
 			return err

@@ -1,10 +1,10 @@
 package main
 
-import(
-	"time"
+import (
 	"github.com/labstack/echo"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type ChannelInfo struct {
