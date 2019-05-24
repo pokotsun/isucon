@@ -19,8 +19,8 @@ CREATE TABLE channel (
   id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
   description MEDIUMTEXT,
-  updated_at DATETIME NOT NULL,
   num_messages BIGINT DEFAULT 0,
+  updated_at DATETIME NOT NULL,
   created_at DATETIME NOT NULL
 ) Engine=InnoDB DEFAULT CHARSET=utf8mb4;
 

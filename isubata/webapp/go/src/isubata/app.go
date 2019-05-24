@@ -447,7 +447,8 @@ func getHistory(c echo.Context) error {
 	}
 
 	channels := []ChannelInfo{}
-	err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
+	//err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
+	channels, err := queryChannels()
 	if err != nil {
 		return err
 	}
@@ -468,8 +469,9 @@ func getProfile(c echo.Context) error {
 		return err
 	}
 
-	channels := []ChannelInfo{}
-	err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
+	//channels := []ChannelInfo{}
+	//err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
+	channels, err := queryChannels()
 	if err != nil {
 		return err
 	}
@@ -499,9 +501,10 @@ func getAddChannel(c echo.Context) error {
 		return err
 	}
 
-	channels := []ChannelInfo{}
+	//channels := []ChannelInfo{}
 	//err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
-	err = db.Select(&channels, "SELECT * FROM channel")
+	//err = db.Select(&channels, "SELECT * FROM channel")
+	channels, err := queryChannels()
 	if err != nil {
 		return err
 	}
