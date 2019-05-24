@@ -29,7 +29,7 @@ import (
 
 const (
 	avatarMaxBytes = 1 * 1024 * 1024
-	iconPath       = "/home/isucon/isubata/webapp/public/images/"
+	iconPath       = "/home/isucon/isubata/webapp/public/icon/"
 )
 
 var (
@@ -613,7 +613,8 @@ func postProfile(c echo.Context) error {
 
 	// TODO replace image
 	if avatarName != "" && len(avatarData) > 0 {
-		_, err := db.Exec("INSERT INTO image (name, data) VALUES (?, ?)", avatarName, avatarData)
+		//_, err := db.Exec("INSERT INTO image (name, data) VALUES (?, ?)", avatarName, avatarData)
+		err := WriteIconToFile(avatarName, avatarData)
 		if err != nil {
 			return err
 		}
