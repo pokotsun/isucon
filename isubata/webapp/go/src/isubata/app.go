@@ -309,7 +309,7 @@ func fetchUnread(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	//time.Sleep(time.Second)
+	time.Sleep(time.Second)
 
 	channels, err := queryChannels() // TODO
 	if err != nil {
@@ -332,7 +332,6 @@ func fetchUnread(c echo.Context) error {
 		} else {
 			err = db.Get(&cnt,
 				"SELECT num_messages as cnt FROM channel WHERE id = ?", chID)
-			//"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?", chID)
 		}
 		if err != nil {
 			return err
