@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/labstack/echo"
 	"net/http"
 	"strconv"
@@ -36,8 +37,7 @@ func getChannel(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	channels := []ChannelInfo{}
-	err = db.Select(&channels, "SELECT id, name, description, updated_at, created_at FROM channel ORDER BY id")
+	channels, err := queryChannelsOrderById()
 	if err != nil {
 		return err
 	}
@@ -55,4 +55,45 @@ func getChannel(c echo.Context) error {
 		"User":        user,
 		"Description": desc,
 	})
+}
+
+func getAddChannel(c echo.Context) error {
+	self, err := ensureLogin(c)
+	if self == nil {
+		return err
+	}
+
+	channels, err := queryChannelsOrderById()
+	if err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "add_channel", map[string]interface{}{
+		"ChannelID": 0,
+		"Channels":  channels,
+		"User":      self,
+	})
+}
+
+func postAddChannel(c echo.Context) error {
+	self, err := ensureLogin(c)
+	if self == nil {
+		return err
+	}
+
+	name := c.FormValue("name")
+	desc := c.FormValue("description")
+	if name == "" || desc == "" {
+		return ErrBadReqeust
+	}
+
+	res, err := db.Exec(
+		"INSERT INTO channel (name, description, updated_at, created_at) VALUES (?, ?, NOW(), NOW())",
+		name, desc)
+	if err != nil {
+		return err
+	}
+	lastID, _ := res.LastInsertId()
+	return c.Redirect(http.StatusSeeOther,
+		fmt.Sprintf("/channel/%v", lastID))
 }

@@ -15,6 +15,41 @@ type Message struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+// messageをゲット
+func queryMessages(chanID, lastID int64) ([]Message, error) {
+	msgs := []Message{}
+	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
+		lastID, chanID)
+	return msgs, err
+}
+
+// Messageをuserといっしょに取ってくる
+func queryMessagesWithUser(chanID, lastID int64) ([]Message, []User, error) {
+	msgs := []Message{}
+	users := []User{}
+
+	rows, err := db.Query(
+		"SELECT message.id, channel_id, user_id, content, message.created_at,"+
+			" name, display_name, avatar_icon FROM message"+
+			" INNER JOIN user ON message.user_id = user.id"+
+			" WHERE message.id > ? AND channel_id = ? ORDER BY message.id DESC LIMIT 100",
+		lastID, chanID)
+	defer rows.Close()
+	for rows.Next() {
+		var m Message
+		var u User
+		if err := rows.Scan(
+			&m.ID, &m.ChannelID, &m.UserID, &m.Content, &m.CreatedAt,
+			&u.Name, &u.DisplayName, &u.AvatarIcon,
+		); err != nil {
+			return msgs, users, err
+		}
+		msgs = append(msgs, m)
+		users = append(users, u)
+	}
+	return msgs, users, err
+}
+
 func addMessage(channelID, userID int64, content string) (int64, error) {
 	tx, err := db.Begin()
 	if err != nil {
@@ -85,4 +120,29 @@ func getMessage(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response)
+}
+
+func postMessage(c echo.Context) error {
+	user, err := ensureLogin(c)
+	if user == nil {
+		return err
+	}
+
+	message := c.FormValue("message")
+	if message == "" {
+		return echo.ErrForbidden
+	}
+
+	var chanID int64
+	if x, err := strconv.Atoi(c.FormValue("channel_id")); err != nil {
+		return echo.ErrForbidden
+	} else {
+		chanID = int64(x)
+	}
+
+	if _, err := addMessage(chanID, user.ID, message); err != nil {
+		return err
+	}
+
+	return c.NoContent(204)
 }

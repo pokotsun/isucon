@@ -88,41 +88,6 @@ func init() {
 	log.Printf("Succeeded to connect db.")
 }
 
-// messageをゲット
-func queryMessages(chanID, lastID int64) ([]Message, error) {
-	msgs := []Message{}
-	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
-		lastID, chanID)
-	return msgs, err
-}
-
-// Messageをuserといっしょに取ってくる
-func queryMessagesWithUser(chanID, lastID int64) ([]Message, []User, error) {
-	msgs := []Message{}
-	users := []User{}
-
-	rows, err := db.Query(
-		"SELECT message.id, channel_id, user_id, content, message.created_at,"+
-			" name, display_name, avatar_icon FROM message"+
-			" INNER JOIN user ON message.user_id = user.id"+
-			" WHERE message.id > ? AND channel_id = ? ORDER BY message.id DESC LIMIT 100",
-		lastID, chanID)
-	defer rows.Close()
-	for rows.Next() {
-		var m Message
-		var u User
-		if err := rows.Scan(
-			&m.ID, &m.ChannelID, &m.UserID, &m.Content, &m.CreatedAt,
-			&u.Name, &u.DisplayName, &u.AvatarIcon,
-		); err != nil {
-			return msgs, users, err
-		}
-		msgs = append(msgs, m)
-		users = append(users, u)
-	}
-	return msgs, users, err
-}
-
 func sessUserID(c echo.Context) int64 {
 	sess, _ := session.Get("session", c)
 	var userID int64
@@ -315,31 +280,6 @@ func getLogout(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, "/")
 }
 
-func postMessage(c echo.Context) error {
-	user, err := ensureLogin(c)
-	if user == nil {
-		return err
-	}
-
-	message := c.FormValue("message")
-	if message == "" {
-		return echo.ErrForbidden
-	}
-
-	var chanID int64
-	if x, err := strconv.Atoi(c.FormValue("channel_id")); err != nil {
-		return echo.ErrForbidden
-	} else {
-		chanID = int64(x)
-	}
-
-	if _, err := addMessage(chanID, user.ID, message); err != nil {
-		return err
-	}
-
-	return c.NoContent(204)
-}
-
 func jsonifyMessageWithUser(m Message, u User) (map[string]interface{}, error) {
 	r := make(map[string]interface{})
 	r["id"] = m.ID
@@ -431,7 +371,6 @@ func getHistory(c echo.Context) error {
 	const N = 20
 	var cnt int64
 	err = db.Get(&cnt, "SELECT num_messages as cnt FROM channel WHERE id = ?", chID)
-	//err = db.Get(&cnt, "SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?", chID)
 	if err != nil {
 		return err
 	}
@@ -478,8 +417,6 @@ func getHistory(c echo.Context) error {
 		mjson = append(mjson, r)
 	}
 
-	//channels := []ChannelInfo{}
-	//err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
 	channels, err := queryChannelsOrderById()
 	if err != nil {
 		return err
@@ -525,50 +462,6 @@ func getProfile(c echo.Context) error {
 		"Other":       other,
 		"SelfProfile": self.ID == other.ID,
 	})
-}
-
-func getAddChannel(c echo.Context) error {
-	self, err := ensureLogin(c)
-	if self == nil {
-		return err
-	}
-
-	//channels := []ChannelInfo{}
-	//err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
-	//err = db.Select(&channels, "SELECT * FROM channel")
-	channels, err := queryChannelsOrderById()
-	if err != nil {
-		return err
-	}
-
-	return c.Render(http.StatusOK, "add_channel", map[string]interface{}{
-		"ChannelID": 0,
-		"Channels":  channels,
-		"User":      self,
-	})
-}
-
-func postAddChannel(c echo.Context) error {
-	self, err := ensureLogin(c)
-	if self == nil {
-		return err
-	}
-
-	name := c.FormValue("name")
-	desc := c.FormValue("description")
-	if name == "" || desc == "" {
-		return ErrBadReqeust
-	}
-
-	res, err := db.Exec(
-		"INSERT INTO channel (name, description, updated_at, created_at) VALUES (?, ?, NOW(), NOW())",
-		name, desc)
-	if err != nil {
-		return err
-	}
-	lastID, _ := res.LastInsertId()
-	return c.Redirect(http.StatusSeeOther,
-		fmt.Sprintf("/channel/%v", lastID))
 }
 
 func postProfile(c echo.Context) error {
