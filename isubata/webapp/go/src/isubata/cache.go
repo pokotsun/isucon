@@ -12,7 +12,7 @@ const (
 )
 
 var (
-	messageNumCache = cache.New(5*time.Minute, 10*time.Minute)
+	messageNumCache = cache.New(50*time.Minute, 100*time.Minute)
 )
 
 // get num messages from cache

@@ -69,7 +69,6 @@ func init() {
 	dsn := fmt.Sprintf("%s%s@tcp(%s:%s)/isubata?parseTime=true&loc=Local&charset=utf8mb4",
 		db_user, db_password, db_host, db_port)
 
-	log.Printf("Connecting to db: %q", dsn)
 	db, _ = sqlx.Connect("mysql", dsn)
 	for {
 		err := db.Ping()
@@ -384,7 +383,8 @@ func getHistory(c echo.Context) error {
 	//}
 	cnt, found := GetNumMessagesFromCache(chID)
 	if !found {
-		return err
+		cnt = 0
+		//return err
 	}
 	maxPage := int64(cnt+N-1) / N
 	if maxPage == 0 {
