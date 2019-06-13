@@ -159,11 +159,17 @@ func register(name, password string) (int64, error) {
 func initNumMessages() error {
 	channels, _ := queryChannels()
 	for _, chID := range channels {
-		if _, err := db.Exec(
-			"UPDATE channel SET num_messages = (SELECT COUNT(*) FROM message WHERE channel_id=?) WHERE id=?",
-			chID, chID); err != nil {
+		//if _, err := db.Exec(
+		//	"UPDATE channel SET num_messages = (SELECT COUNT(*) FROM message WHERE channel_id=?) WHERE id=?",
+		//	chID, chID); err != nil {
+		//	return err
+		//}
+		var numMessages int64
+		if err := db.Select(&numMessages, "SELECT COUNT(*) FROM message WHERE channel_id=?",
+			chID); err != nil {
 			return err
 		}
+		SetNumMessagesToCache(chID, numMessages)
 	}
 	return nil
 }
@@ -327,8 +333,13 @@ func fetchUnread(c echo.Context) error {
 				"SELECT COUNT(*) AS cnt FROM message WHERE channel_id = ? AND ? < id",
 				chID, lastID)
 		} else {
-			err = db.Get(&cnt,
-				"SELECT num_messages AS cnt FROM channel WHERE id = ?", chID)
+			//err = db.Get(&cnt,
+			//	"SELECT num_messages AS cnt FROM channel WHERE id = ?", chID)
+			numMessages, found := GetNumMessagesFromCache(chID)
+			if !found {
+				return err
+			}
+			cnt = numMessages
 		}
 		if err != nil {
 			return err
@@ -366,8 +377,12 @@ func getHistory(c echo.Context) error {
 
 	const N = 20
 	var cnt int64
-	err = db.Get(&cnt, "SELECT num_messages as cnt FROM channel WHERE id = ?", chID)
-	if err != nil {
+	//err = db.Get(&cnt, "SELECT num_messages as cnt FROM channel WHERE id = ?", chID)
+	//if err != nil {
+	//	return err
+	//}
+	cnt, found := GetNumMessagesFromCache(chID)
+	if !found {
 		return err
 	}
 	maxPage := int64(cnt+N-1) / N
