@@ -65,8 +65,9 @@ func addMessage(channelID, userID int64, content string) (int64, error) {
 
 	numMessages, found := GetNumMessagesFromCache(channelID)
 	if !found {
-		return 0, err
+		numMessages = 0
 	}
+	fmt.Println("UPDATE is REQUESTED!!")
 	SetNumMessagesToCache(channelID, numMessages+1)
 	//// channelにメッセージの総数を追加
 	//if _, err = tx.Exec(

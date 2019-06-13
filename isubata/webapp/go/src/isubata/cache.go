@@ -12,7 +12,7 @@ const (
 )
 
 var (
-	messageNumCache = cache.New(50*time.Minute, 100*time.Minute)
+	messageNumCache = cache.New(5*time.Minute, 10*time.Minute)
 )
 
 // get num messages from cache
@@ -32,5 +32,5 @@ func GetNumMessagesFromCache(chID int64) (int64, bool) {
 func SetNumMessagesToCache(chID int64, value int64) {
 	key := MESSAGE_NUM_KEY + strconv.FormatInt(chID, 10)
 	fmt.Println("ON_SETNUM_FROMCACHE-" + key + ": " + strconv.FormatInt(value, 10))
-	messageNumCache.Set(key, value, cache.DefaultExpiration)
+	messageNumCache.Set(key, value, cache.NoExpiration)
 }
