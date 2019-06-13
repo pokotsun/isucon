@@ -33,9 +33,10 @@ const (
 )
 
 var (
-	db            *sqlx.DB
-	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
-	imageCache    = cache.New(5*time.Minute, 10*time.Minute)
+	db              *sqlx.DB
+	ErrBadReqeust   = echo.NewHTTPError(http.StatusBadRequest)
+	imageCache      = cache.New(5*time.Minute, 10*time.Minute)
+	messageNumCache = cache.New(5*time.Minute, 10*time.Minute)
 )
 
 type Renderer struct {
@@ -163,7 +164,7 @@ func initNumMessages() error {
 	channels, _ := queryChannels()
 	for _, chID := range channels {
 		if _, err := db.Exec(
-			"UPDATE channel SET num_messages = (SELECT COUNT(id) FROM message WHERE channel_id=?) WHERE id=?",
+			"UPDATE channel SET num_messages = (SELECT COUNT(*) FROM message WHERE channel_id=?) WHERE id=?",
 			chID, chID); err != nil {
 			return err
 		}
@@ -327,11 +328,11 @@ func fetchUnread(c echo.Context) error {
 		var cnt int64
 		if lastID > 0 {
 			err = db.Get(&cnt,
-				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ? AND ? < id",
+				"SELECT COUNT(*) AS cnt FROM message WHERE channel_id = ? AND ? < id",
 				chID, lastID)
 		} else {
 			err = db.Get(&cnt,
-				"SELECT num_messages as cnt FROM channel WHERE id = ?", chID)
+				"SELECT num_messages AS cnt FROM channel WHERE id = ?", chID)
 		}
 		if err != nil {
 			return err

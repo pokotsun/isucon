@@ -62,7 +62,16 @@ func addMessage(channelID, userID int64, content string) (int64, error) {
 		tx.Rollback()
 		return 0, err
 	}
-	// channel部にメッセージのトータルを追加
+
+	//// cacheで取ってくるようにする
+	//cacheKey := "channelID-" + channelID
+	//var numMessages int64
+	//num_i, found := messageNumCache.Get(cacheKey)
+	//if found {
+	//	num_messages = num_i.(int64)
+	//}
+
+	// channelにメッセージの総数を追加
 	if _, err = tx.Exec(
 		"UPDATE channel SET num_messages = num_messages + 1 WHERE id = ?",
 		channelID); err != nil {

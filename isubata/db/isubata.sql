@@ -37,6 +37,7 @@ CREATE TABLE haveread (
   user_id BIGINT NOT NULL,
   channel_id BIGINT NOT NULL,
   message_id BIGINT,
+  num_haveread_messages BIGINT,
   updated_at DATETIME NOT NULL,
   created_at DATETIME NOT NULL,
   PRIMARY KEY(user_id, channel_id)
