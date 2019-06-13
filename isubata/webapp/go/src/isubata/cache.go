@@ -21,7 +21,6 @@ func GetNumMessagesFromCache(chID int64) (int64, bool) {
 	num_i, found := messageNumCache.Get(key)
 	if found {
 		num, _ := num_i.(int64)
-		fmt.Println("ON_GETNUM_FROMCACHE-" + key + ": " + strconv.FormatInt(num, 10))
 		return num, true
 	} else {
 		return -1, false
@@ -31,6 +30,5 @@ func GetNumMessagesFromCache(chID int64) (int64, bool) {
 // set num messages to cache
 func SetNumMessagesToCache(chID int64, value int64) {
 	key := MESSAGE_NUM_KEY + strconv.FormatInt(chID, 10)
-	fmt.Println("ON_SETNUM_FROMCACHE-" + key + ": " + strconv.FormatInt(value, 10))
 	messageNumCache.Set(key, value, cache.NoExpiration)
 }

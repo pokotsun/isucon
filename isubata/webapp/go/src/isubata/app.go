@@ -158,18 +158,11 @@ func register(name, password string) (int64, error) {
 func initNumMessages() error {
 	channels, _ := queryChannels()
 	for _, chID := range channels {
-		//if _, err := db.Exec(
-		//	"UPDATE channel SET num_messages = (SELECT COUNT(*) FROM message WHERE channel_id=?) WHERE id=?",
-		//	chID, chID); err != nil {
-		//	return err
-		//}
 		var numMessages int64
 		if err := db.QueryRow("SELECT COUNT(*) AS num_messages FROM message WHERE channel_id=?",
 			chID).Scan(&numMessages); err != nil {
-			fmt.Println("Im not ERROR: " + err.Error())
 			return err
 		}
-		fmt.Println("MYTIMEIS-" + strconv.FormatInt(chID, 10) + ": " + strconv.FormatInt(numMessages, 10))
 		SetNumMessagesToCache(chID, numMessages)
 	}
 	return nil
@@ -184,7 +177,6 @@ func convertDBImageToFile() {
 
 	for _, image := range images {
 		err := WriteIconToFile(image.Name, image.Data)
-		//err := ioutil.WriteFile("/home/isucon/isubata/webapp/public/images/"+image.Name, image.Data, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -334,8 +326,6 @@ func fetchUnread(c echo.Context) error {
 				"SELECT COUNT(*) AS cnt FROM message WHERE channel_id = ? AND ? < id",
 				chID, lastID)
 		} else {
-			//err = db.Get(&cnt,
-			//	"SELECT num_messages AS cnt FROM channel WHERE id = ?", chID)
 			numMessages, found := GetNumMessagesFromCache(chID)
 			if !found {
 				return err
@@ -378,10 +368,6 @@ func getHistory(c echo.Context) error {
 
 	const N = 20
 	var cnt int64
-	//err = db.Get(&cnt, "SELECT num_messages as cnt FROM channel WHERE id = ?", chID)
-	//if err != nil {
-	//	return err
-	//}
 	cnt, found := GetNumMessagesFromCache(chID)
 	if !found {
 		cnt = 0
@@ -451,8 +437,6 @@ func getProfile(c echo.Context) error {
 		return err
 	}
 
-	//channels := []ChannelInfo{}
-	//err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
 	channels, err := queryChannelsOrderById()
 	if err != nil {
 		return err
