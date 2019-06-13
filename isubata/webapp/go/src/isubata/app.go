@@ -166,6 +166,7 @@ func initNumMessages() error {
 		var numMessages int64
 		if err := db.Select(&numMessages, "SELECT COUNT(*) FROM message WHERE channel_id=?",
 			chID); err != nil {
+			fmt.Println("Im not ERROR: " + err.Error())
 			return err
 		}
 		fmt.Println("MYTIMEIS-" + strconv.FormatInt(chID, 10) + ": " + strconv.FormatInt(numMessages, 10))
