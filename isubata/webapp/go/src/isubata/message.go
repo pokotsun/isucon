@@ -115,14 +115,15 @@ func getMessage(c echo.Context) error {
 	}
 
 	if len(messages) > 0 {
-		_, err := db.Exec(
-			"INSERT INTO haveread (user_id, channel_id, message_id, updated_at, created_at)"+
-				" VALUES (?, ?, ?, NOW(), NOW())"+
-				" ON DUPLICATE KEY UPDATE message_id = ?, updated_at = NOW()",
-			userID, chanID, messages[0].ID, messages[0].ID)
-		if err != nil {
-			return err
-		}
+		SetHavereadToCache(userID, chanID, messages[0].ID)
+		//_, err := db.Exec(
+		//	"INSERT INTO haveread (user_id, channel_id, message_id, updated_at, created_at)"+
+		//		" VALUES (?, ?, ?, NOW(), NOW())"+
+		//		" ON DUPLICATE KEY UPDATE message_id = ?, updated_at = NOW()",
+		//	userID, chanID, messages[0].ID, messages[0].ID)
+		//if err != nil {
+		//	return err
+		//}
 	}
 
 	return c.JSON(http.StatusOK, response)

@@ -286,15 +286,19 @@ func jsonifyMessageWithUser(m Message, u User) (map[string]interface{}, error) {
 }
 
 func queryHaveRead(userID, chID int64) (int64, error) {
-	var messageID int64
-	err := db.Get(&messageID, "SELECT message_id FROM haveread WHERE user_id = ? AND channel_id = ?",
-		userID, chID)
-
-	if err == sql.ErrNoRows {
-		return 0, nil
-	} else if err != nil {
-		return 0, err
+	//var messageID int64
+	//err := db.Get(&messageID, "SELECT message_id FROM haveread WHERE user_id = ? AND channel_id = ?",
+	//		userID, chID)
+	//if err == sql.ErrNoRows {
+	//	return 0, nil
+	//} else if err != nil {
+	//	return 0, err
+	//}
+	messageID, found := GetHavereadFromCache(userID, chID)
+	if !found {
+		messageID = 0
 	}
+
 	return messageID, nil
 }
 
