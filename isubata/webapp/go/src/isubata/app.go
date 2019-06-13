@@ -169,6 +169,7 @@ func initNumMessages() error {
 			chID); err != nil {
 			return err
 		}
+		log.fmtPrintln("ON_INIT_NUM_MESSAGES")
 		SetNumMessagesToCache(chID, numMessages)
 	}
 	return nil
