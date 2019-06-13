@@ -164,8 +164,8 @@ func initNumMessages() error {
 		//	return err
 		//}
 		var numMessages int64
-		if err := db.Select(&numMessages, "SELECT COUNT(*) AS num_messages FROM message WHERE channel_id=?",
-			chID); err != nil {
+		if err := db.QueryRow("SELECT COUNT(*) AS num_messages FROM message WHERE channel_id=?",
+			chID).Scan(&numMessages); err != nil {
 			fmt.Println("Im not ERROR: " + err.Error())
 			return err
 		}
