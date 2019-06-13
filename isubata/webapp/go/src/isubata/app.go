@@ -168,6 +168,7 @@ func initNumMessages() error {
 			chID); err != nil {
 			return err
 		}
+		fmt.Println("MYTIMEIS-" + strconv.FormatInt(chID, 10) + ": " + strconv.FormatInt(numMessages, 10))
 		SetNumMessagesToCache(chID, numMessages)
 	}
 	return nil
