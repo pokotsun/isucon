@@ -23,8 +23,6 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/middleware"
-
-	"github.com/patrickmn/go-cache"
 )
 
 const (
@@ -33,10 +31,8 @@ const (
 )
 
 var (
-	db              *sqlx.DB
-	ErrBadReqeust   = echo.NewHTTPError(http.StatusBadRequest)
-	imageCache      = cache.New(5*time.Minute, 10*time.Minute)
-	messageNumCache = cache.New(5*time.Minute, 10*time.Minute)
+	db            *sqlx.DB
+	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
 )
 
 type Renderer struct {
