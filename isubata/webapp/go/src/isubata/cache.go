@@ -34,8 +34,8 @@ func SetNumMessagesToCache(chID int64, value int64) {
 	messageNumCache.Set(key, value, cache.NoExpiration)
 }
 
-func GetHavereadFromCache(chID int64) (int64, bool) {
-	key := HAVEREAD_KEY + strconv.FormatInt(chID, 10)
+func GetHavereadFromCache(uID, chID int64) (int64, bool) {
+	key := HAVEREAD_KEY + strconv.FormatInt(uID, 10) + "-" + strconv.FormatInt(chID, 10)
 	num_i, found := haveReadCache.Get(key)
 	if found {
 		num, _ := num_i.(int64)
@@ -45,7 +45,7 @@ func GetHavereadFromCache(chID int64) (int64, bool) {
 	}
 }
 
-func SetHavereadToCache(chID int64, value int64) {
-	key := HAVEREAD_KEY + strconv.FormatInt(chID, 10)
+func SetHavereadToCache(uID, chID int64, value int64) {
+	key := HAVEREAD_KEY + strconv.FormatInt(uID, 10) + "-" + strconv.FormatInt(chID, 10)
 	haveReadCache.Set(key, value, cache.NoExpiration)
 }
