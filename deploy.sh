@@ -9,8 +9,11 @@ cd ../../..
 sudo sh -c 'echo "" > /var/log/nginx/access.log'
 #sudo sh -c 'echo "" > /var/log/mariadb/slow.sql'
 #sudo sh -c 'echo "" > /var/log/mariadb/general.sql'
-sudo systemctl restart nginx.service
-sudo systemctl restart mysql.service
 sudo systemctl restart isuda.go
+echo 'Finished to restart isuda!!'
+sudo systemctl restart nginx.service
+echo 'Finished to restart nginx!!'
+sudo systemctl restart mysql.service
+echo 'Finished to restart mysql!!'
 #cd isubata/bench && ./bin/bench -remotes=127.0.0.1 -output result.json
 #jq . < result.json
