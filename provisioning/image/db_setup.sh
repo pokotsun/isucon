@@ -12,7 +12,7 @@ mysql -u${myuser} -p${mypass} -e "DROP DATABASE IF EXISTS ${isuda_mydb}; CREATE 
 mysql -u${myuser} -p${mypass} ${isuda_mydb} < ../../db/isuda.sql
 mysql -u${myuser} -p${mypass} ${isuda_mydb} < ../../db/isuda_user.sql
 mysql -u${myuser} -p${mypass} ${isuda_mydb} < ../../db/isuda_entry.sql
-mysql -u${myuser} -p${mypass} ${isutar_mydb} < ../../db/isutar.sql
+mysql -u${myuser} -p${mypass} ${isuda_mydb} < ../../db/isutar.sql
 
 # Isutar
 #isutar_mydb=isutar
