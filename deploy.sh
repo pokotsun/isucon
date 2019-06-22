@@ -11,7 +11,7 @@ sudo sh -c 'echo "" > /var/log/nginx/access.log'
 #sudo sh -c 'echo "" > /var/log/mariadb/general.sql'
 sudo systemctl restart nginx.service
 sudo systemctl restart mysql.service
-sudo systemctl restart isuda.golang
-sudo systemctl restart isutar.golang
+sudo systemctl restart isuda.go
+sudo systemctl restart isutar.go
 #cd isubata/bench && ./bin/bench -remotes=127.0.0.1 -output result.json
 #jq . < result.json
