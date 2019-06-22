@@ -7,14 +7,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html"
 	"html/template"
 	"log"
 	"math"
 	"net/http"
 	"net/url"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -303,37 +301,6 @@ func keywordByKeywordDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = db.Exec(`DELETE FROM entry WHERE keyword = ?`, keyword)
 	panicIf(err)
 	http.Redirect(w, r, "/", http.StatusFound)
-}
-
-//TODO ここがN+1の根源
-func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
-	if content == "" {
-		return ""
-	}
-
-	rows, err := db.Query(`
-		SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
-	`)
-	panicIf(err)
-	keywords := make([]string, 0, 500)
-	for rows.Next() {
-		var keyword string
-		err := rows.Scan(&keyword)
-		panicIf(err)
-
-		keyword = regexp.QuoteMeta(keyword)
-		u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
-		panicIf(err)
-		link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
-		keywords = append(keywords, keyword)
-		keywords = append(keywords, link)
-	}
-	rows.Close()
-
-	replacer := strings.NewReplacer(keywords...)
-	content = replacer.Replace(content)
-
-	return strings.Replace(content, "\n", "<br />\n", -1)
 }
 
 // これ以上どうしろっちゅうねん
