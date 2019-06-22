@@ -99,11 +99,14 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	entries := make([]*Entry, 0, 10)
 
+	keywordsAndLinks := getReplaceKeywordAndLink(r)
+
 	for rows.Next() {
 		e := Entry{}
 		err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt)
 		panicIf(err)
-		e.Html = htmlify(w, r, e.Description)
+		//e.Html = htmlify(w, r, e.Description)
+		e.Html = htmlifyWithKeywords(w, r, e.Description, keywordsAndLinks)
 		e.Stars = loadStars(e.Keyword)
 		entries = append(entries, &e)
 	}
