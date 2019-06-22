@@ -320,7 +320,6 @@ func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 		var keyword string
 		err := rows.Scan(&keyword)
 		panicIf(err)
-
 		keyword = regexp.QuoteMeta(keyword)
 		u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
 		panicIf(err)
@@ -331,6 +330,7 @@ func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 	rows.Close()
 
 	replacer := strings.NewReplacer(keywords...)
+
 	content = replacer.Replace(content)
 
 	return strings.Replace(content, "\n", "<br />\n", -1)
