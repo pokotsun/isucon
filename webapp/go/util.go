@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
 	"runtime/debug"
 )
 
@@ -34,6 +35,11 @@ func myHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 
 func pathURIEscape(s string) string {
 	return (&url.URL{Path: s}).String()
+}
+
+func decodeUriString(s string) string {
+	decoded, _ := url.QueryUnescape(s)
+	return decoded
 }
 
 func notFound(w http.ResponseWriter) {
