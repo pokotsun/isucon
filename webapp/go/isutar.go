@@ -20,11 +20,11 @@ var (
 	re      *render.Render
 )
 
-func initializeHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := db.Exec("TRUNCATE star")
-	panicIf(err)
-	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
-}
+//func initializeHandler(w http.ResponseWriter, r *http.Request) {
+//	_, err := db.Exec("TRUNCATE star")
+//	panicIf(err)
+//	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
+//}
 
 func starsHandler(w http.ResponseWriter, r *http.Request) {
 	keyword := r.FormValue("keyword")
@@ -108,7 +108,7 @@ func main() {
 	re = render.New(render.Options{Directory: "dummy"})
 
 	r := mux.NewRouter()
-	r.HandleFunc("/initialize", myHandler(initializeHandler))
+	//r.HandleFunc("/initialize", myHandler(initializeHandler))
 	s := r.PathPrefix("/stars").Subrouter()
 	s.Methods("GET").HandlerFunc(myHandler(starsHandler))
 	s.Methods("POST").HandlerFunc(myHandler(starsPostHandler))
