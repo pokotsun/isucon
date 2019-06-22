@@ -2,7 +2,7 @@ CREATE TABLE entry (
     id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
     author_id BIGINT UNSIGNED NOT NULL,
     keyword VARCHAR(191) UNIQUE,
-    keyword_length BIGINT UNSIGNED DEFAULT CHAR_LENGTH(keyword),
+    keyword_length BIGINT UNSIGNED DEFAULT 0,
     description MEDIUMTEXT,
     updated_at DATETIME NOT NULL,
     created_at DATETIME NOT NULL
