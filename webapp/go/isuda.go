@@ -344,24 +344,8 @@ func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 	return strings.Replace(content, "\n", "<br />\n", -1)
 }
 
-//TODO 温床
+// これ以上どうしろっちゅうねん
 func loadStars(keyword string) []*Star {
-	return getKeywordStar(keyword)
-	//v := url.Values{}
-	//v.Set("keyword", keyword)
-	//resp, err := http.Get(fmt.Sprintf("%s/stars", isutarEndpoint) + "?" + v.Encode())
-	//panicIf(err)
-	//defer resp.Body.Close()
-
-	//var data struct {
-	//	Result []*Star `json:result`
-	//}
-	//err = json.NewDecoder(resp.Body).Decode(&data)
-	//panicIf(err)
-	//return data.Result
-}
-
-func getKeywordStar(keyword string) []*Star {
 	stars := make([]*Star, 0, 10)
 	rows, err := db.Query(`SELECT * FROM star WHERE keyword = ?`, keyword)
 	if err != nil && err != sql.ErrNoRows {
