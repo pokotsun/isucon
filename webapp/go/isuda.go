@@ -350,16 +350,23 @@ func starsHandler(w http.ResponseWriter, r *http.Request) {
 func starsPostHandler(w http.ResponseWriter, r *http.Request) {
 	keyword := r.FormValue("keyword")
 
-	origin := os.Getenv("ISUDA_ORIGIN")
-	if origin == "" {
-		origin = "http://localhost:5000"
-	}
-	u, err := r.URL.Parse(fmt.Sprintf("%s/keyword/%s", origin, pathURIEscape(keyword)))
-	panicIf(err)
-	resp, err := http.Get(u.String())
-	panicIf(err)
-	defer resp.Body.Close()
-	if resp.StatusCode >= 400 {
+	//origin := os.Getenv("ISUDA_ORIGIN")
+	//if origin == "" {
+	//	origin = "http://localhost:5000"
+	//}
+	//u, err := r.URL.Parse(fmt.Sprintf("%s/keyword/%s", origin, pathURIEscape(keyword)))
+	//panicIf(err)
+	//resp, err := http.Get(u.String())
+	//panicIf(err)
+	//defer resp.Body.Close()
+	//if resp.StatusCode >= 400 {
+	//	notFound(w)
+	//	return
+	//}
+	row := db.QueryRow(`SELECT COUNT(*) FROM entry WHERE keyword = ?`, keyword)
+	var count int64
+	err := row.Scan(&count)
+	if err == sql.ErrNoRows || count == 0 {
 		notFound(w)
 		return
 	}
