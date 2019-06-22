@@ -101,24 +101,11 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	entries := make([]*Entry, 0, 10)
 
-	// get Keywords
-	keywords := make([]string, 0, 500)
-	rows, err = db.Query(`
-		SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
-	`)
-	for rows.Next() {
-		var keyword string
-		err := rows.Scan(&keyword)
-		panicIf(err)
-		keywords = append(keywords, keyword)
-	}
-	rows.Close()
-
 	for rows.Next() {
 		e := Entry{}
 		err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt)
 		panicIf(err)
-		e.Html = htmlifyWithKeywords(w, r, e.Description, keywords)
+		e.Html = htmlify(w, r, e.Description)
 		e.Stars = loadStars(e.Keyword)
 		entries = append(entries, &e)
 	}
@@ -344,26 +331,6 @@ func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 	rows.Close()
 
 	replacer := strings.NewReplacer(keywords...)
-	content = replacer.Replace(content)
-
-	return strings.Replace(content, "\n", "<br />\n", -1)
-}
-
-func htmlifyWithKeywords(w http.ResponseWriter, r *http.Request, content string, keywords []string) string {
-	if content == "" {
-		return ""
-	}
-	replaceList := make([]string, 0, 500)
-	for _, keyword := range keywords {
-		keyword = regexp.QuoteMeta(keyword)
-		u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
-		panicIf(err)
-		link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
-		replaceList = append(replaceList, keyword)
-		replaceList = append(replaceList, link)
-	}
-
-	replacer := strings.NewReplacer(replaceList...)
 	content = replacer.Replace(content)
 
 	return strings.Replace(content, "\n", "<br />\n", -1)
