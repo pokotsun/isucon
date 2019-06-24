@@ -8,7 +8,7 @@ deps:
 	go get github.com/unrolled/render
 
 
-isuda: deps
+isuda: #deps
 	go build -o isuda isuda.go type.go util.go htmlify.go
 
 #isutar: deps

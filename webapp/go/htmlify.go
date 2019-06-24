@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// get keyword-1, link-1, ..., keyword-n, link-n string list
+// keyword-1, link-1, ..., keyword-n, link-n string list
 func getReplaceKeywordAndLink(r *http.Request) []string {
 	rows, err := db.Query(`
 		SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
@@ -31,20 +31,11 @@ func getReplaceKeywordAndLink(r *http.Request) []string {
 	return keywords
 }
 
-//TODO ここがN+1の根源
 func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
-	if content == "" {
-		return ""
-	}
 	keywords := getReplaceKeywordAndLink(r)
-
-	replacer := strings.NewReplacer(keywords...)
-	content = replacer.Replace(content)
-
-	return strings.Replace(content, "\n", "<br />\n", -1)
+	return htmlifyWithKeywords(w, r, content, keywords)
 }
 
-//TODO ここがN+1の根源
 func htmlifyWithKeywords(w http.ResponseWriter, r *http.Request, content string, keywords []string) string {
 	if content == "" {
 		return ""
