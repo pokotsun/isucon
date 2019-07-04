@@ -9,12 +9,10 @@ import (
 const (
 	STAR_NUM_KEY     = "STAR_NUM-"
 	HTMLIFY_REPLACER = "HTMLIFY_REPLACER_KEY"
-	KEYWORD_HTML_KEY = "KEYWORD_HTML-"
 )
 
 var (
-	cache_                 = cache.New(5*time.Hour, 10*time.Hour)
-	isKeywordInserted bool = true
+	cache_ = cache.New(5*time.Hour, 10*time.Hour)
 )
 
 func getDataFromCache(key string) (interface{}, bool) {

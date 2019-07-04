@@ -48,6 +48,15 @@ func setName(w http.ResponseWriter, r *http.Request) error {
 	}
 	setContext(r, "user_id", userID)
 	userName, ok := session.Values["user_name"]
+	//row := db.QueryRow(`SELECT name FROM user WHERE id = ?`, userID)
+	//user := User{}
+	//err := row.Scan(&user.Name)
+	//if err != nil {
+	//	if err == sql.ErrNoRows {
+	//		return errInvalidUser
+	//	}
+	//	panicIf(err)
+	//}
 	setContext(r, "user_name", userName)
 	return nil
 }
@@ -91,13 +100,12 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	entries := make([]*Entry, 0, 10)
 
-	//replacer, found := GetHtmlifyReplacerFromCache()
-	//if isKeywordInserted || !found {
-	//	replacer = getReplacerForHtmlify(r)
-	//	SetHtmlifyReplacerToCache(replacer)
-	//	isKeywordInserted = false
-	//}
-	replacer := getReplacerForHtmlify(r)
+	//replacer := getReplacerForHtmlify(r)
+	replacer, found := GetHtmlifyReplacerFromCache()
+	if !found {
+		replacer = getReplacerForHtmlify(r)
+		SetHtmlifyReplacerToCache(replacer)
+	}
 
 	for rows.Next() {
 		e := Entry{}
@@ -173,8 +181,7 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 	panicIf(err)
 
 	// cache Replacer on append new keyword
-	isKeywordInserted = true
-	//SetHtmlifyReplacerToCache(getReplacerForHtmlify(r))
+	SetHtmlifyReplacerToCache(getReplacerForHtmlify(r))
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
