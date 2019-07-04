@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/patrickmn/go-cache"
+	"strings"
 	"time"
 )
 
@@ -14,12 +15,12 @@ var (
 	cache_ = cache.New(5*time.Hour, 10*time.Hour)
 )
 
-func getDataFromCache(key string) (Interface, bool) {
+func getDataFromCache(key string) (interface{}, bool) {
 	data_i, found := cache_.Get(key)
 	return data_i, found
 }
 
-func setData(key string, value Interface) {
+func setData(key string, value interface{}) {
 	cache_.Set(key, value, cache.NoExpiration)
 }
 
