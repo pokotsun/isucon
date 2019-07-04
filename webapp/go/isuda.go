@@ -156,6 +156,7 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 		badRequest(w)
 		return
 	}
+	keywordLength := getStrLength(keyword)
 	userID := getContext(r, "user_id").(int)
 	description := r.FormValue("description")
 
@@ -164,11 +165,11 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err := db.Exec(`
-		INSERT INTO entry (author_id, keyword, description, created_at, updated_at)
-		VALUES (?, ?, ?, NOW(), NOW())
+		INSERT INTO entry (author_id, keyword, description, created_at, updated_at, keyword_length)
+		VALUES (?, ?, ?, NOW(), NOW(), ?)
 		ON DUPLICATE KEY UPDATE
 		author_id = ?, keyword = ?, description = ?, updated_at = NOW(), keyword_length = ?
-	`, userID, keyword, description, userID, keyword, description, getStrLength(keyword))
+	`, userID, keyword, description, KeywordLength, userID, keyword, description, KeywordLength)
 	panicIf(err)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
