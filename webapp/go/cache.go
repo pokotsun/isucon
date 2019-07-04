@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/patricmn/go-cache"
+	"github.com/patrickmn/go-cache"
 	"strconv"
 	"time"
 )
