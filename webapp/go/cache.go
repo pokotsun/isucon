@@ -32,3 +32,7 @@ func GetStarNumFromCache(keyword string) (int, bool) {
 	}
 	return num, found
 }
+
+func GetHtmlifyRegex(keyword_length) {
+
+}

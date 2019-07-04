@@ -9,7 +9,7 @@ import (
 )
 
 // keyword-1, link-1, ..., keyword-n, link-n string list
-func getReplaceKeywordAndLink(r *http.Request) []string {
+func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
 	//rows, err := db.Query(`
 	//	SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
 	//`)
@@ -31,21 +31,32 @@ func getReplaceKeywordAndLink(r *http.Request) []string {
 		keywords = append(keywords, link)
 	}
 	rows.Close()
-	return keywords
+	replacer := strings.NewReplacer(keywords...)
+	return replacer
 }
 
 func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
-	keywords := getReplaceKeywordAndLink(r)
-	return htmlifyWithKeywords(w, r, content, keywords)
+	//keywords := getReplaceKeywordAndLink(r)
+	replacer := getReplacerForHtmlify(r)
+	//return htmlifyWithKeywords(w, r, content, replacer)
+	return htmlifyWithReplacer(w, r, content, replacer)
 }
 
-func htmlifyWithKeywords(w http.ResponseWriter, r *http.Request, content string, keywords []string) string {
+func htmlifyWithReplacer(w http.ResponseWriter, r *http.Request, content string, replacer *strings.Replacer) string {
 	if content == "" {
 		return ""
 	}
-
-	replacer := strings.NewReplacer(keywords...)
 	content = replacer.Replace(content)
 
 	return strings.Replace(content, "\n", "<br />\n", -1)
 }
+
+//func htmlifyWithKeywords(w http.ResponseWriter, r *http.Request, content string, keywords []string) string {
+//	if content == "" {
+//		return ""
+//	}
+//	replacer := strings.NewReplacer(keywords...)
+//	content = replacer.Replace(content)
+//
+//	return strings.Replace(content, "\n", "<br />\n", -1)
+//}
