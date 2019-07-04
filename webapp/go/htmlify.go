@@ -10,9 +10,6 @@ import (
 
 // keyword-1, link-1, ..., keyword-n, link-n string list to Replacer
 func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
-	//rows, err := db.Query(`
-	//	SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
-	//`)
 	replacer, found := GetHtmlifyReplacerFromCache()
 	if !found {
 		rows, err := db.Query(`
