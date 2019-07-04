@@ -36,7 +36,13 @@ func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
 }
 
 func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
-	replacer := getReplacerForHtmlify(r)
+	replacer, found := GetHtmlifyReplacerFromCache()
+	if !found {
+		replacer = getReplacerForHtmlify(r)
+		SetHtmlifyReplacerToCache(replacer)
+	}
+
+	//replacer := getReplacerForHtmlify(r)
 	return htmlifyWithReplacer(w, r, content, replacer)
 }
 
