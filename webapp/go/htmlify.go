@@ -13,36 +13,37 @@ func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
 	//rows, err := db.Query(`
 	//	SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
 	//`)
-	rows, err := db.Query(`
-		SELECT keyword FROM entry ORDER BY keyword_length DESC
-	`)
-	panicIf(err)
-	keywords := make([]string, 0, 500)
-	for rows.Next() {
-		var keyword string
-		err := rows.Scan(&keyword)
+	replacer, found := GetHtmlifyReplacerFromCache()
+	if isKeywordInserted || !found {
+		rows, err := db.Query(`
+			SELECT keyword FROM entry ORDER BY keyword_length DESC
+		`)
 		panicIf(err)
+		keywords := make([]string, 0, 500)
+		for rows.Next() {
+			var keyword string
+			err := rows.Scan(&keyword)
+			panicIf(err)
 
-		keyword = regexp.QuoteMeta(keyword)
-		u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
-		panicIf(err)
-		link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
-		keywords = append(keywords, keyword)
-		keywords = append(keywords, link)
+			keyword = regexp.QuoteMeta(keyword)
+			u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
+			panicIf(err)
+			link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
+			keywords = append(keywords, keyword)
+			keywords = append(keywords, link)
+		}
+		rows.Close()
+		replacer = strings.NewReplacer(keywords...)
+
+		// cache replacer
+		SetHtmlifyReplacerToCache(replacer)
+		isKeywordInserted = false
 	}
-	rows.Close()
-	replacer := strings.NewReplacer(keywords...)
 	return replacer
 }
 
 func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
-	replacer, found := GetHtmlifyReplacerFromCache()
-	if !found {
-		replacer = getReplacerForHtmlify(r)
-		SetHtmlifyReplacerToCache(replacer)
-	}
-
-	//replacer := getReplacerForHtmlify(r)
+	replacer := getReplacerForHtmlify(r)
 	return htmlifyWithReplacer(w, r, content, replacer)
 }
 
