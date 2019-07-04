@@ -71,8 +71,7 @@ func initializeKeywords() {
 		var keyword string
 		err := rows.Scan(&keyword)
 		panicIf(err)
-
-		cachedKeywords = regexp.QuoteMeta(keyword)
+		keyword = regexp.QuoteMeta(keyword)
 		cachedKeywords = append(cachedKeywords, keyword)
 	}
 
