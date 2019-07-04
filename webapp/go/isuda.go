@@ -47,16 +47,17 @@ func setName(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 	setContext(r, "user_id", userID)
-	row := db.QueryRow(`SELECT name FROM user WHERE id = ?`, userID)
-	user := User{}
-	err := row.Scan(&user.Name)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return errInvalidUser
-		}
-		panicIf(err)
-	}
-	setContext(r, "user_name", user.Name)
+	userName, ok := session.Values["user_name"]
+	//row := db.QueryRow(`SELECT name FROM user WHERE id = ?`, userID)
+	//user := User{}
+	//err := row.Scan(&user.Name)
+	//if err != nil {
+	//	if err == sql.ErrNoRows {
+	//		return errInvalidUser
+	//	}
+	//	panicIf(err)
+	//}
+	setContext(r, "user_name", userName)
 	return nil
 }
 
@@ -212,6 +213,7 @@ func loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	panicIf(err)
 	session := getSession(w, r)
 	session.Values["user_id"] = user.ID
+	session.Values["user_name"] = user.Name
 	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -247,6 +249,7 @@ func registerPostHandler(w http.ResponseWriter, r *http.Request) {
 	userID := register(name, pw)
 	session := getSession(w, r)
 	session.Values["user_id"] = userID
+	session.Values["user_name"] = name
 	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
