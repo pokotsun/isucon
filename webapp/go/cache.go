@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/patrickmn/go-cache"
-	"strconv"
 	"time"
 )
 
