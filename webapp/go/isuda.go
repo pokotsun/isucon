@@ -37,7 +37,6 @@ var (
 	re      *render.Render
 	store   *sessions.CookieStore
 
-	cachedKeywords = make([]string, 0, 10000)
 	errInvalidUser = errors.New("Invalid User")
 )
 
@@ -168,8 +167,11 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 		userID, keyword, description, keywordLength)
 	panicIf(err)
 
-	//cachedKeywords = append(cachedKeywords, regexp.QuoteMeta(keyword))
-	DeleteHtmlifyReplacerFromCache() // Delete Htmlify Replacer because keyword link will be updated
+	if cacheKeywordCount > 50 {
+		DeleteHtmlifyReplacerFromCache() // Delete Htmlify Replacer because keyword link will be updated
+		cacheKeywordCount = 0
+	}
+	cacheKeywordCount++
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }

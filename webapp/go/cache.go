@@ -14,7 +14,8 @@ const (
 )
 
 var (
-	cache_ = cache.New(5*time.Hour, 10*time.Hour)
+	cacheKeywordCount = 0
+	cache_            = cache.New(5*time.Hour, 10*time.Hour)
 )
 
 func getDataFromCache(key string) (interface{}, bool) {
