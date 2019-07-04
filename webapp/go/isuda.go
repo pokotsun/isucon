@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -37,7 +38,7 @@ var (
 	re      *render.Render
 	store   *sessions.CookieStore
 
-	keywords       = make([]String, 0, 10000)
+	keywords       = make([]string, 0, 10000)
 	errInvalidUser = errors.New("Invalid User")
 )
 
