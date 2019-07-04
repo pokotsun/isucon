@@ -10,8 +10,11 @@ import (
 
 // keyword-1, link-1, ..., keyword-n, link-n string list
 func getReplaceKeywordAndLink(r *http.Request) []string {
+	//rows, err := db.Query(`
+	//	SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
+	//`)
 	rows, err := db.Query(`
-		SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
+		SELECT keyword FROM entry ORDER BY keyword_length DESC
 	`)
 	panicIf(err)
 	keywords := make([]string, 0, 500)
