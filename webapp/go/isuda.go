@@ -169,7 +169,7 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 		VALUES (?, ?, ?, NOW(), NOW(), ?)
 		ON DUPLICATE KEY UPDATE
 		author_id = ?, keyword = ?, description = ?, updated_at = NOW(), keyword_length = ?
-	`, userID, keyword, description, KeywordLength, userID, keyword, description, KeywordLength)
+	`, userID, keyword, description, keywordLength, userID, keyword, description, keywordLength)
 	panicIf(err)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
