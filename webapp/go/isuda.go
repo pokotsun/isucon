@@ -60,30 +60,12 @@ func authenticate(w http.ResponseWriter, r *http.Request) error {
 	return errInvalidUser
 }
 
-// keywords init
-//func initializeKeywords() {
-//	rows, err := db.Query(`
-//		SELECT keyword FROM entry ORDER BY keyword_length DESC
-//	`)
-//	panicIf(err)
-//	for rows.Next() {
-//		var keyword string
-//		err := rows.Scan(&keyword)
-//		panicIf(err)
-//		keyword = regexp.QuoteMeta(keyword)
-//		cachedKeywords = append(cachedKeywords, keyword)
-//	}
-//
-//}
-
 func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := db.Exec(`DELETE FROM entry WHERE id > 7101`)
 	panicIf(err)
 
 	_, err = db.Exec("TRUNCATE star")
 	panicIf(err)
-
-	//initializeKeywords()
 
 	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
 }
@@ -117,7 +99,7 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 		e := Entry{}
 		err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt, &e.KeywordLength)
 		panicIf(err)
-		e.Html = htmlifyWithReplacer(w, r, e.ID, e.Description, replacer)
+		e.Html = htmlifyWithReplacer(w, r, e.Description, replacer)
 		e.Stars = loadStars(e.Keyword)
 		entries = append(entries, &e)
 	}
@@ -287,7 +269,7 @@ func keywordByKeywordHandler(w http.ResponseWriter, r *http.Request) {
 		notFound(w)
 		return
 	}
-	e.Html = htmlify(w, r, e.ID, e.Description)
+	e.Html = htmlify(w, r, e.Description)
 	e.Stars = loadStars(e.Keyword)
 
 	re.HTML(w, http.StatusOK, "keyword", struct {

@@ -12,16 +12,6 @@ import (
 func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
 	replacer, found := GetHtmlifyReplacerFromCache()
 	if !found {
-
-		//keywords := make([]string, 0, 10000)
-		//for _, keyword := range cachedKeywords {
-		//	u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
-		//	panicIf(err)
-		//	link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
-		//	keywords = append(keywords, keyword)
-		//	keywords = append(keywords, link)
-		//}
-
 		rows, err := db.Query(`
 		SELECT keyword FROM entry ORDER BY keyword_length DESC
 		`)
@@ -47,22 +37,16 @@ func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
 	return replacer
 }
 
-func htmlify(w http.ResponseWriter, r *http.Request, entryID int, content string) string {
+func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 	replacer := getReplacerForHtmlify(r)
-	return htmlifyWithReplacer(w, r, entryID, content, replacer)
+	return htmlifyWithReplacer(w, r, content, replacer)
 }
 
-func htmlifyWithReplacer(w http.ResponseWriter, r *http.Request, entryID int, content string, replacer *strings.Replacer) string {
+func htmlifyWithReplacer(w http.ResponseWriter, r *http.Request, content string, replacer *strings.Replacer) string {
 	if content == "" {
 		return ""
 	}
 	content = replacer.Replace(content)
 	html := strings.Replace(content, "\n", "<br />\n", -1)
-	//html, found := GetKeywordHtmlFromCache(entryID)
-	//if !found {
-	//	content = replacer.Replace(content)
-	//	html = strings.Replace(content, "\n", "<br />\n", -1)
-	//	SetKeywordHtmlToCache(entryID, html)
-	//}
 	return html
 }
