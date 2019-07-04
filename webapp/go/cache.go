@@ -34,7 +34,7 @@ func GetStarNumFromCache(keyword string) (int, bool) {
 	return num, found
 }
 
-func GetHtmlifyReplacerFromCache() (*strings.Replacer, bool) {
+func GetHtmlifyReplacerFromCache() *strings.Replacer {
 	key := HTMLIFY_REPLACER
 	data_i, found := getDataFromCache(key)
 	if found {
