@@ -199,6 +199,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// POST /login authenticate user is valid
 func loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	row := db.QueryRow(`SELECT * FROM user WHERE name = ?`, name)
@@ -363,9 +364,9 @@ func starsHandler(w http.ResponseWriter, r *http.Request) {
 func starsPostHandler(w http.ResponseWriter, r *http.Request) {
 	keyword := r.FormValue("keyword")
 
-	row := db.QueryRow(`SELECT COUNT(*) FROM entry WHERE keyword = ?`, keyword)
-	var count int64
-	err := row.Scan(&count)
+	row := db.QueryRow(`SELECT id FROM entry WHERE keyword = ?`, keyword)
+	var id int64
+	err := row.Scan(&id)
 	if err == sql.ErrNoRows || count == 0 {
 		notFound(w)
 		return
