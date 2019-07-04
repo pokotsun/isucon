@@ -66,8 +66,8 @@ func DeleteHtmlifyReplacerFromCache() {
 /***********************/
 /* Keyword Linked HTML */
 /***********************/
-func GetKeywordHtmlFromCache(keyword string) (string, bool) {
-	key := KEYWORD_HTML_KEY + keyword
+func GetKeywordHtmlFromCache(entryID int) (string, bool) {
+	key := KEYWORD_HTML_KEY + strconv.FormatInt(entryID, 10)
 	data_i, found := getDataFromCache(key)
 	var html string = ""
 	if found {
@@ -76,12 +76,12 @@ func GetKeywordHtmlFromCache(keyword string) (string, bool) {
 	return html, found
 }
 
-func SetKeywordHtmlToCache(keyword, html string) {
-	key := KEYWORD_HTML_KEY + keyword
+func SetKeywordHtmlToCache(entryID int, html string) {
+	key := KEYWORD_HTML_KEY + strconv.FormatInt(entryID, 10)
 	setData(key, html)
 }
 
-func DeleteKeywordHtmlFromCache(keyword string) {
-	key := KEYWORD_HTML_KEY + keyword
+func DeleteKeywordHtmlFromCache(entryID int) {
+	key := KEYWORD_HTML_KEY + strconv.FormatInt(entryID, 10)
 	deleteData(key)
 }
