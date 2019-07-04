@@ -76,7 +76,7 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
 }
 
-//NOTE GET /
+// GET /
 func topHandler(w http.ResponseWriter, r *http.Request) {
 	if err := setName(w, r); err != nil {
 		forbidden(w)
@@ -141,6 +141,7 @@ func robotsHandler(w http.ResponseWriter, r *http.Request) {
 	notFound(w)
 }
 
+// POST /keyword
 func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 	if err := setName(w, r); err != nil {
 		forbidden(w)
@@ -169,7 +170,8 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 		VALUES (?, ?, ?, NOW(), NOW(), ?)
 		ON DUPLICATE KEY UPDATE
 		author_id = ?, keyword = ?, description = ?, updated_at = NOW(), keyword_length = ?
-	`, userID, keyword, description, keywordLength, userID, keyword, description, keywordLength)
+	`, userID, keyword, description, keywordLength,
+		userID, keyword, description, keywordLength)
 	panicIf(err)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -351,19 +353,6 @@ func starsHandler(w http.ResponseWriter, r *http.Request) {
 func starsPostHandler(w http.ResponseWriter, r *http.Request) {
 	keyword := r.FormValue("keyword")
 
-	//origin := os.Getenv("ISUDA_ORIGIN")
-	//if origin == "" {
-	//	origin = "http://localhost:5000"
-	//}
-	//u, err := r.URL.Parse(fmt.Sprintf("%s/keyword/%s", origin, pathURIEscape(keyword)))
-	//panicIf(err)
-	//resp, err := http.Get(u.String())
-	//panicIf(err)
-	//defer resp.Body.Close()
-	//if resp.StatusCode >= 400 {
-	//	notFound(w)
-	//	return
-	//}
 	row := db.QueryRow(`SELECT COUNT(*) FROM entry WHERE keyword = ?`, keyword)
 	var count int64
 	err := row.Scan(&count)
