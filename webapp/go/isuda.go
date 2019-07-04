@@ -167,6 +167,7 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 	panicIf(err)
 
 	DeleteHtmlifyReplacerFromCache() // Delete Htmlify Replacer because keyword link will be updated
+	SetHtmlifyReplacerToCache(getReplacerForHtmlify(r))
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
