@@ -48,15 +48,6 @@ func setName(w http.ResponseWriter, r *http.Request) error {
 	}
 	setContext(r, "user_id", userID)
 	userName, ok := session.Values["user_name"]
-	//row := db.QueryRow(`SELECT name FROM user WHERE id = ?`, userID)
-	//user := User{}
-	//err := row.Scan(&user.Name)
-	//if err != nil {
-	//	if err == sql.ErrNoRows {
-	//		return errInvalidUser
-	//	}
-	//	panicIf(err)
-	//}
 	setContext(r, "user_name", userName)
 	return nil
 }
@@ -100,12 +91,12 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	entries := make([]*Entry, 0, 10)
 
-	//replacer := getReplacerForHtmlify(r)
-	replacer, found := GetHtmlifyReplacerFromCache()
-	if !found {
-		replacer = getReplacerForHtmlify(r)
-		SetHtmlifyReplacerToCache(replacer)
-	}
+	replacer := getReplacerForHtmlify(r)
+	//replacer, found := GetHtmlifyReplacerFromCache()
+	//if !found {
+	//	replacer = getReplacerForHtmlify(r)
+	//	SetHtmlifyReplacerToCache(replacer)
+	//}
 
 	for rows.Next() {
 		e := Entry{}
