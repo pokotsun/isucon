@@ -92,11 +92,6 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	entries := make([]*Entry, 0, 10)
 
 	replacer := getReplacerForHtmlify(r)
-	//replacer, found := GetHtmlifyReplacerFromCache()
-	//if !found {
-	//	replacer = getReplacerForHtmlify(r)
-	//	SetHtmlifyReplacerToCache(replacer)
-	//}
 
 	for rows.Next() {
 		e := Entry{}
@@ -171,9 +166,7 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 		userID, keyword, description, keywordLength)
 	panicIf(err)
 
-	// cache Replacer on append new keyword
-	SetHtmlifyReplacerToCache(getReplacerForHtmlify(r))
-
+	DeleteHtmlifyReplacerFromCache() // Delete Htmlify Replacer because keyword link will be updated
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 

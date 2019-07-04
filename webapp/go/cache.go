@@ -24,6 +24,10 @@ func setData(key string, value interface{}) {
 	cache_.Set(key, value, cache.NoExpiration)
 }
 
+func deleteData(key string) {
+	cache_.Delete(key)
+}
+
 func GetStarNumFromCache(keyword string) (int, bool) {
 	key := STAR_NUM_KEY + keyword
 	data_i, found := getDataFromCache(key)
@@ -46,6 +50,10 @@ func GetHtmlifyReplacerFromCache() (*strings.Replacer, bool) {
 }
 
 func SetHtmlifyReplacerToCache(r *strings.Replacer) {
-	key := HTMLIFY_REPLACER
 	setData(key, *r)
+}
+
+func DeleteHtmlifyReplacerFromCache() {
+	key := HTMLIFY_REPLACER
+	deleteData(key)
 }
