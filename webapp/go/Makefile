@@ -9,7 +9,7 @@ deps:
 	go get github.com/patrickmn/go-cache
 
 
-isuda: #deps
+isuda: 
 	go build -o isuda isuda.go type.go util.go htmlify.go
 
 #isutar: deps
