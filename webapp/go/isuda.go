@@ -170,7 +170,6 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	//cachedKeywords = append(cachedKeywords, regexp.QuoteMeta(keyword))
 	DeleteHtmlifyReplacerFromCache() // Delete Htmlify Replacer because keyword link will be updated
-	SetHtmlifyReplacerToCache(getReplacerForHtmlify(r))
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
