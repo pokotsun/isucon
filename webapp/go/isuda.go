@@ -38,7 +38,7 @@ var (
 	re      *render.Render
 	store   *sessions.CookieStore
 
-	keywords       = make([]string, 0, 10000)
+	cachedKeywords = make([]string, 0, 10000)
 	errInvalidUser = errors.New("Invalid User")
 )
 
@@ -72,8 +72,8 @@ func initializeKeywords() {
 		err := rows.Scan(&keyword)
 		panicIf(err)
 
-		keyword = regexp.QuoteMeta(keyword)
-		keywords = append(keywords, keyword)
+		cachedKeywords = regexp.QuoteMeta(keyword)
+		cachedKeywords = append(cachedKeywords, keyword)
 	}
 
 }
@@ -85,7 +85,7 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = db.Exec("TRUNCATE star")
 	panicIf(err)
 
-	//initializeKeywords()
+	initializeKeywords()
 
 	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
 }
@@ -188,7 +188,7 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 		userID, keyword, description, keywordLength)
 	panicIf(err)
 
-	//keywords = append(keywords, regexp.QuoteMeta(keyword))
+	cachedKeywords = append(cachedKeywords, regexp.QuoteMeta(keyword))
 	DeleteHtmlifyReplacerFromCache() // Delete Htmlify Replacer because keyword link will be updated
 	SetHtmlifyReplacerToCache(getReplacerForHtmlify(r))
 
