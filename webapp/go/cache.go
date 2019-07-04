@@ -50,6 +50,7 @@ func GetHtmlifyReplacerFromCache() (*strings.Replacer, bool) {
 }
 
 func SetHtmlifyReplacerToCache(r *strings.Replacer) {
+	key := HTMLIFY_REPLACER
 	setData(key, *r)
 }
 
