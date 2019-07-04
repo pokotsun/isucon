@@ -49,7 +49,11 @@ func htmlifyWithReplacer(w http.ResponseWriter, r *http.Request, content string,
 	if content == "" {
 		return ""
 	}
-	content = replacer.Replace(content)
-
-	return strings.Replace(content, "\n", "<br />\n", -1)
+	html, found = GetKeywordHtmlFromCache(keyword)
+	if !found {
+		content = replacer.Replace(content)
+		html = strings.Replace(content, "\n", "<br />\n", -1)
+		SetKeywordHtmlToCache(keyword, html)
+	}
+	return html
 }

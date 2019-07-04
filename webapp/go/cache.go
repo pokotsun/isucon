@@ -9,6 +9,7 @@ import (
 const (
 	STAR_NUM_KEY     = "STAR_NUM-"
 	HTMLIFY_REPLACER = "HTMLIFY_REPLACER_KEY"
+	KEYWORD_HTML_KEY = "KEYWORD_HTML_KEY-"
 )
 
 var (
@@ -38,6 +39,9 @@ func GetStarNumFromCache(keyword string) (int, bool) {
 	return num, found
 }
 
+/*******************/
+/* HtmlifyReplacer */
+/*******************/
 func GetHtmlifyReplacerFromCache() (*strings.Replacer, bool) {
 	key := HTMLIFY_REPLACER
 	data_i, found := getDataFromCache(key)
@@ -56,5 +60,28 @@ func SetHtmlifyReplacerToCache(r *strings.Replacer) {
 
 func DeleteHtmlifyReplacerFromCache() {
 	key := HTMLIFY_REPLACER
+	deleteData(key)
+}
+
+/***********************/
+/* Keyword Linked HTML */
+/***********************/
+func GetKeywordHtmlFromCache(keyword string) (string, bool) {
+	key := KEYWORD_HTML_KEY + keyword
+	data_i, found := getDataFromCache(key)
+	var html string = ""
+	if found {
+		html, _ := data_i.(string)
+	}
+	return html, found
+}
+
+func SetKeywordHtmlToCache(keyword, html string) {
+	key := KEYWORD_HTML_KEY + keyword
+	setData(key, html)
+}
+
+func DeleteKeywordHtmlFromCache(keyword string) {
+	key := KEYWORD_HTML_KEY + keyword
 	deleteData(key)
 }
