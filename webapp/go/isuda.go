@@ -367,7 +367,7 @@ func starsPostHandler(w http.ResponseWriter, r *http.Request) {
 	row := db.QueryRow(`SELECT id FROM entry WHERE keyword = ?`, keyword)
 	var id int64
 	err := row.Scan(&id)
-	if err == sql.ErrNoRows || count == 0 {
+	if err == sql.ErrNoRows || id == 0 {
 		notFound(w)
 		return
 	}
