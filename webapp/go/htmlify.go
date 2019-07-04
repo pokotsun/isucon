@@ -12,11 +12,15 @@ import (
 func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
 	replacer, found := GetHtmlifyReplacerFromCache()
 	if !found {
+
+		//for i := 0; i < 500; i++ {
+
+		//}
 		rows, err := db.Query(`
 		SELECT keyword FROM entry ORDER BY keyword_length DESC
 		`)
 		panicIf(err)
-		keywords := make([]string, 0, 500)
+		keywords := make([]string, 0, 10000)
 		for rows.Next() {
 			var keyword string
 			err := rows.Scan(&keyword)
