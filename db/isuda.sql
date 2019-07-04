@@ -15,3 +15,6 @@ CREATE TABLE user (
     password VARCHAR(40),
     created_at DATETIME NOT NULL
 ) Engine=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE entry ADD keyword_length BIGINT NOT NULL;
+UPDATE entry SET keyword_length=CHARACTER_LENGTH(keyword);
