@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"unicode/utf8"
 
 	"runtime/debug"
 )
@@ -55,6 +56,10 @@ func badRequest(w http.ResponseWriter) {
 func forbidden(w http.ResponseWriter) {
 	code := http.StatusForbidden
 	http.Error(w, http.StatusText(code), code)
+}
+
+func getStrLength(str string) int {
+	return utf8.RuneCountInString(str)
 }
 
 func panicIf(err error) {
