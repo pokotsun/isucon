@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -62,20 +61,20 @@ func authenticate(w http.ResponseWriter, r *http.Request) error {
 }
 
 // keywords init
-func initializeKeywords() {
-	rows, err := db.Query(`
-		SELECT keyword FROM entry ORDER BY keyword_length DESC
-	`)
-	panicIf(err)
-	for rows.Next() {
-		var keyword string
-		err := rows.Scan(&keyword)
-		panicIf(err)
-		keyword = regexp.QuoteMeta(keyword)
-		cachedKeywords = append(cachedKeywords, keyword)
-	}
-
-}
+//func initializeKeywords() {
+//	rows, err := db.Query(`
+//		SELECT keyword FROM entry ORDER BY keyword_length DESC
+//	`)
+//	panicIf(err)
+//	for rows.Next() {
+//		var keyword string
+//		err := rows.Scan(&keyword)
+//		panicIf(err)
+//		keyword = regexp.QuoteMeta(keyword)
+//		cachedKeywords = append(cachedKeywords, keyword)
+//	}
+//
+//}
 
 func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := db.Exec(`DELETE FROM entry WHERE id > 7101`)
@@ -84,7 +83,7 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = db.Exec("TRUNCATE star")
 	panicIf(err)
 
-	initializeKeywords()
+	//initializeKeywords()
 
 	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
 }
@@ -187,7 +186,7 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 		userID, keyword, description, keywordLength)
 	panicIf(err)
 
-	cachedKeywords = append(cachedKeywords, regexp.QuoteMeta(keyword))
+	//cachedKeywords = append(cachedKeywords, regexp.QuoteMeta(keyword))
 	DeleteHtmlifyReplacerFromCache() // Delete Htmlify Replacer because keyword link will be updated
 	SetHtmlifyReplacerToCache(getReplacerForHtmlify(r))
 
