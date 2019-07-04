@@ -72,7 +72,7 @@ func GetKeywordHtmlFromCache(entryID int) (string, bool) {
 	data_i, found := getDataFromCache(key)
 	var html string = ""
 	if found {
-		html, _ := data_i.(string)
+		html, _ = data_i.(string)
 	}
 	return html, found
 }
