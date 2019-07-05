@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	STAR_NUM_KEY     = "STAR_NUM-"
-	HTMLIFY_REPLACER = "HTMLIFY_REPLACER_KEY"
-	KEYWORD_HTML_KEY = "KEYWORD_HTML_KEY-"
+	STAR_NUM_KEY             = "STAR_NUM-"
+	HTMLIFY_REPLACER_STRINGS = "HTMLIFY_REPLACER_KEY"
+	KEYWORD_HTML_KEY         = "KEYWORD_HTML_KEY-"
 )
 
 var (
@@ -45,7 +45,7 @@ func GetStarNumFromCache(keyword string) (int, bool) {
 /* HtmlifyReplacerString */
 /*************************/
 func GetHtmlifyReplacerStringFromCache() (*strings.Replacer, bool) {
-	key := HTMLIFY_REPLACER
+	key := HTMLIFY_REPLACER_STRINGS
 	data_i, found := getDataFromCache(key)
 	if found {
 		r, _ := data_i.(strings.Replacer)
@@ -56,12 +56,12 @@ func GetHtmlifyReplacerStringFromCache() (*strings.Replacer, bool) {
 }
 
 func SetHtmlifyReplacerStringToCache(r *strings.Replacer) {
-	key := HTMLIFY_REPLACER
+	key := HTMLIFY_REPLACER_STRINGS
 	setData(key, *r)
 }
 
 func DeleteHtmlifyReplacerStringFromCache() {
-	key := HTMLIFY_REPLACER
+	key := HTMLIFY_REPLACER_STRINGS
 	deleteData(key)
 }
 
