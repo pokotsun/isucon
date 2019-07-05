@@ -223,7 +223,7 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 	SetHtmlifyReplacerStringsToCache(replacerStrings)
 
 	entries := GetAllEntries(w, r)
-	e := Entry{userID, keyword, description}
+	e := Entry{AuthorID: userID, Keyword: keyword, Description: description}
 	replacer := getReplacerForHtmlify(r)
 	e.Html = htmlifyWithReplacer(w, r, e.Description, replacer)
 	e.Stars = loadStars(e.Keyword)
