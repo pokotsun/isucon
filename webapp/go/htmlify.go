@@ -51,7 +51,7 @@ func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
 	//}
 	//rows.Close()
 	replacerStrings := getReplacerStringForHtmlify(r)
-	replacer = strings.NewReplacer(replacerStrings...)
+	replacer := strings.NewReplacer(replacerStrings...)
 
 	return replacer
 }
