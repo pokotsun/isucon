@@ -12,7 +12,7 @@ var (
 
 func loadStars(keyword string) []Star {
 	stars := make([]Star, 0, 10)
-	for i, star := range allStars {
+	for _, star := range allStars {
 		if star.Keyword == keyword {
 			stars = append(stars, star)
 		}
@@ -58,7 +58,7 @@ func starsPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	user := r.FormValue("user")
 	newStar := Star{Keyword: keyword, UserName: user, CreatedAt: time.Now()}
-	allStars = append(allStars)
+	allStars = append(allStars, newStar)
 	//_, err = db.Exec(`INSERT INTO star (keyword, user_name, created_at) VALUES (?, ?, NOW())`, keyword, user)
 	//panicIf(err)
 
