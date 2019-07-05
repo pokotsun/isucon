@@ -72,8 +72,8 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	replacerStrings := getReplacerStringsForHtmlify(r)
 	SetHtmlifyReplacerStringsToCache(replacerStrings)
 
-	entries := GetAllEntries(w, r)
-	SetEntriesToCache(entries)
+	//entries := GetAllEntries(w, r)
+	//SetEntriesToCache(entries)
 
 	row := db.QueryRow(`SELECT COUNT(*) FROM entry`)
 	err = row.Scan(&totalEntries)
@@ -84,34 +84,34 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
 }
 
-func GetAllEntries(w http.ResponseWriter, r *http.Request) []Entry {
-	entries, found := GetEntriesFromCache()
-	if !found {
-		rows, err := db.Query(fmt.Sprintf(
-			"SELECT id, author_id, keyword, description, updated_at, created_at FROM entry " +
-				"ORDER BY updated_at DESC",
-		))
-		if err != nil && err != sql.ErrNoRows {
-			panicIf(err)
-		}
-		entries = make([]Entry, 0, 10000)
-		replacer := getReplacerForHtmlify(r)
-		for rows.Next() {
-			e := Entry{}
-			err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt)
-			panicIf(err)
-			e.Html = htmlifyWithReplacer(w, r, e.Description, replacer)
-			e.Stars = loadStars(e.Keyword)
-			entries = append(entries, e)
-		}
-		rows.Close()
-	}
-	return entries
-
-}
+//func GetAllEntries(w http.ResponseWriter, r *http.Request) []Entry {
+//	entries, found := GetEntriesFromCache()
+//	if !found {
+//		rows, err := db.Query(fmt.Sprintf(
+//			"SELECT id, author_id, keyword, description, updated_at, created_at FROM entry " +
+//				"ORDER BY updated_at DESC",
+//		))
+//		if err != nil && err != sql.ErrNoRows {
+//			panicIf(err)
+//		}
+//		entries = make([]Entry, 0, 10000)
+//		replacer := getReplacerForHtmlify(r)
+//		for rows.Next() {
+//			e := Entry{}
+//			err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt)
+//			panicIf(err)
+//			e.Html = htmlifyWithReplacer(w, r, e.Description, replacer)
+//			e.Stars = loadStars(e.Keyword)
+//			entries = append(entries, e)
+//		}
+//		rows.Close()
+//	}
+//	return entries
+//
+//}
 
 func GetEntriesPerPage(perPage, page int, w http.ResponseWriter, r *http.Request) []Entry {
-	entries, found := GetEntriesFromCache()
+	entries, found := GetEntriesPerPageFromCache(page)
 	if !found {
 		rows, err := db.Query(fmt.Sprintf(
 			"SELECT id, author_id, keyword, description, updated_at, created_at FROM entry "+
@@ -133,15 +133,8 @@ func GetEntriesPerPage(perPage, page int, w http.ResponseWriter, r *http.Request
 			entries = append(entries, e)
 		}
 		rows.Close()
-		return entries
-	} else {
-		pageStart := perPage * (page - 1)
-		pageEnd := pageStart + perPage
-		if pageStart > len(entries) || pageEnd > len(entries) {
-			return []Entry{}
-		}
-		return entries[pageStart:pageEnd]
 	}
+	return entries
 }
 
 // GET /
@@ -159,6 +152,7 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(p)
 
 	entries := GetEntriesPerPage(perPage, page, w, r)
+	SetEntriesPerPageToCache(page, entries)
 
 	lastPage := int(math.Ceil(float64(totalEntries) / float64(perPage)))
 	pages := make([]int, 0, 10)
@@ -223,7 +217,7 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 	replacerStrings = append(replacerStrings, keywordLink)
 	SetHtmlifyReplacerStringsToCache(replacerStrings)
 
-	DeleteEntriesFromCache()
+	//DeleteEntriesFromCache()
 	//entries := GetAllEntries(w, r)
 	//e := Entry{AuthorID: userID, Keyword: keyword, Description: description}
 	//replacer := getReplacerForHtmlify(r)

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ENTRIES_KEY              = "ENTRIES_KEY-"
+	ENTRIES_PER_PAGE_KEY     = "ENTRIES_PER_PAGE_KEY-"
 	HTMLIFY_REPLACER_STRINGS = "HTMLIFY_REPLACER_KEY"
 	KEYWORD_HTML_KEY         = "KEYWORD_HTML_KEY-"
 )
@@ -56,8 +56,8 @@ func DeleteHtmlifyReplacerStringsFromCache() {
 /***************************/
 /******** Entries **********/
 /***************************/
-func GetEntriesFromCache() ([]Entry, bool) {
-	key := ENTRIES_KEY
+func GetEntriesPerPageFromCache(int page) ([]Entry, bool) {
+	key := ENTRIES_KEY + strconv.Itoa(page)
 	data_i, found := getDataFromCache(key)
 	if found {
 		r, _ := data_i.([]Entry)
@@ -66,13 +66,13 @@ func GetEntriesFromCache() ([]Entry, bool) {
 	return []Entry{}, found
 }
 
-func SetEntriesToCache(entries []Entry) {
-	key := ENTRIES_KEY
+func SetEntriesPerPageToCache(page int, entries []Entry) {
+	key := ENTRIES_KEY + strconv.Itoa(page)
 	setData(key, entries)
 }
 
-func DeleteEntriesFromCache() {
-	key := ENTRIES_KEY
+func DeleteEntriesPerPageFromCache(page int) {
+	key := ENTRIES_KEY + strconv.Itoa(page)
 	deleteData(key)
 }
 
