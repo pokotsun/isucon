@@ -71,6 +71,11 @@ func SetEntriesToCache(entries []Entry) {
 	setData(key, entries)
 }
 
+func DeleteEntriesFromCache() {
+	key := ENTRIES_KEY
+	deleteData(key)
+}
+
 /***********************/
 /* Keyword Linked HTML */
 /***********************/
