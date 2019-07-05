@@ -56,7 +56,7 @@ func DeleteHtmlifyReplacerStringsFromCache() {
 /***************************/
 /******** Entries **********/
 /***************************/
-func GetEntriesPerPageFromCache(int page) ([]Entry, bool) {
+func GetEntriesPerPageFromCache(page int) ([]Entry, bool) {
 	key := ENTRIES_PER_PAGE_KEY + strconv.Itoa(page)
 	data_i, found := getDataFromCache(key)
 	if found {
