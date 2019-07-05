@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	STAR_NUM_KEY             = "STAR_NUM-"
+	ENTRIES_KEY              = "ENTRIES_KEY-"
 	HTMLIFY_REPLACER_STRINGS = "HTMLIFY_REPLACER_KEY"
 	KEYWORD_HTML_KEY         = "KEYWORD_HTML_KEY-"
 )
@@ -28,19 +28,6 @@ func setData(key string, value interface{}) {
 
 func deleteData(key string) {
 	cache_.Delete(key)
-}
-
-/***************************/
-/********** Star ***********/
-/***************************/
-func GetStarNumFromCache(keyword string) (int, bool) {
-	key := STAR_NUM_KEY + keyword
-	data_i, found := getDataFromCache(key)
-	var num int = -1
-	if found {
-		num, _ = data_i.(int)
-	}
-	return num, found
 }
 
 /*************************/
@@ -64,6 +51,24 @@ func SetHtmlifyReplacerStringsToCache(r []string) {
 func DeleteHtmlifyReplacerStringsFromCache() {
 	key := HTMLIFY_REPLACER_STRINGS
 	deleteData(key)
+}
+
+/***************************/
+/******** Entries **********/
+/***************************/
+func GetEntriesFromCache() ([]Entries, bool) {
+	key := ENTRIES_KEY
+	data_i, found := getDataFromCache(key)
+	if found {
+		r, _ := data_i.([]Entry)
+		return r, found
+	}
+	return []Entry{}, found
+}
+
+func SetEntriesToCache(entries []Entries) {
+	key := ENTRIES_KEY
+	setData(key, r)
 }
 
 /***********************/

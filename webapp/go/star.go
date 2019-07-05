@@ -17,20 +17,6 @@ func loadStars(keyword string) []Star {
 			stars = append(stars, star)
 		}
 	}
-	//rows, err := db.Query(`SELECT * FROM star WHERE keyword = ?`, keyword)
-	//if err != nil && err != sql.ErrNoRows {
-	//	panicIf(err)
-	//	return stars
-	//}
-
-	//for rows.Next() {
-	//	s := Star{}
-	//	err := rows.Scan(&s.ID, &s.Keyword, &s.UserName, &s.CreatedAt)
-	//	panicIf(err)
-	//	stars = append(stars, s)
-	//}
-	//rows.Close()
-
 	return stars
 }
 
@@ -59,8 +45,6 @@ func starsPostHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	newStar := Star{Keyword: keyword, UserName: user, CreatedAt: time.Now()}
 	allStars = append(allStars, newStar)
-	//_, err = db.Exec(`INSERT INTO star (keyword, user_name, created_at) VALUES (?, ?, NOW())`, keyword, user)
-	//panicIf(err)
 
 	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
 }

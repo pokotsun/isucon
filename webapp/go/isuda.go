@@ -81,20 +81,7 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
 }
 
-// GET /
-func topHandler(w http.ResponseWriter, r *http.Request) {
-	if err := setName(w, r); err != nil {
-		forbidden(w)
-		return
-	}
-
-	perPage := 10
-	p := r.URL.Query().Get("page")
-	if p == "" {
-		p = "1"
-	}
-	page, _ := strconv.Atoi(p)
-
+func GetEntriesPerPage(perPage, page int, w http.ResponseWriter, r *http.Request) []Entry {
 	rows, err := db.Query(fmt.Sprintf(
 		"SELECT id, author_id, keyword, description, updated_at, created_at FROM entry "+
 			"ORDER BY updated_at DESC LIMIT %d OFFSET %d",
@@ -116,7 +103,24 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	//var totalEntries int
+	return entries
+}
+
+// GET /
+func topHandler(w http.ResponseWriter, r *http.Request) {
+	if err := setName(w, r); err != nil {
+		forbidden(w)
+		return
+	}
+
+	perPage := 10
+	p := r.URL.Query().Get("page")
+	if p == "" {
+		p = "1"
+	}
+	page, _ := strconv.Atoi(p)
+
+	entries := GetEntriesPerPage(perPage, page, w, r)
 
 	lastPage := int(math.Ceil(float64(totalEntries) / float64(perPage)))
 	pages := make([]int, 0, 10)
