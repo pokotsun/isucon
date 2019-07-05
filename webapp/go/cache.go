@@ -30,6 +30,9 @@ func deleteData(key string) {
 	cache_.Delete(key)
 }
 
+/***************************/
+/********** Star ***********/
+/***************************/
 func GetStarNumFromCache(keyword string) (int, bool) {
 	key := STAR_NUM_KEY + keyword
 	data_i, found := getDataFromCache(key)
