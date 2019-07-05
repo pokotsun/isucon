@@ -87,9 +87,10 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 func GetAllEntries(w http.ResponseWriter, r *http.Request) []Entry {
 	entries, found := GetEntriesFromCache()
 	if !found {
-		rows, err := db.Query(fmt.Sprintf())
-		"SELECT id, author_id, keyword, description, updated_at, created_at FROM entry " +
-			"ORDER BY updated_at DESC"
+		rows, err := db.Query(fmt.Sprintf(
+			"SELECT id, author_id, keyword, description, updated_at, created_at FROM entry " +
+				"ORDER BY updated_at DESC",
+		))
 		if err != nil && err != sql.ErrNoRows {
 			panicIf(err)
 		}
