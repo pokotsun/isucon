@@ -66,6 +66,10 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = db.Exec("TRUNCATE star")
 	panicIf(err)
 
+	// at first, cache replacer strings
+	replacerStrings := getReplacerStringsForHtmlify(r)
+	SetHtmlifyReplacerStringsToCache(replacerStrings)
+
 	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
 }
 
@@ -84,7 +88,6 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(p)
 
 	rows, err := db.Query(fmt.Sprintf(
-		//"SELECT * FROM entry ORDER BY updated_at DESC LIMIT %d OFFSET %d",
 		"SELECT id, author_id, keyword, description, updated_at, created_at FROM entry "+
 			"ORDER BY updated_at DESC LIMIT %d OFFSET %d",
 		perPage, perPage*(page-1),
@@ -168,6 +171,13 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 	`, userID, keyword, description, keywordLength,
 		userID, keyword, description, keywordLength)
 	panicIf(err)
+
+	// update replacer strings
+	replacerStrings := getReplacerStringsForHtmlify(r)
+	keywordLink := GetKeywordLink(keyword, r)
+	replacerStrings = append(replacerStrings, keyword)
+	replacerStrings = append(replacerStrings, keywordLink)
+	SetHtmlifyReplacerStringsToCache(replacerStrings)
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }

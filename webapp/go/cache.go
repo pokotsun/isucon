@@ -44,23 +44,22 @@ func GetStarNumFromCache(keyword string) (int, bool) {
 /*************************/
 /* HtmlifyReplacerString */
 /*************************/
-func GetHtmlifyReplacerStringFromCache() (*strings.Replacer, bool) {
+func GetHtmlifyReplacerStringsFromCache() ([]string, bool) {
 	key := HTMLIFY_REPLACER_STRINGS
 	data_i, found := getDataFromCache(key)
 	if found {
-		r, _ := data_i.(strings.Replacer)
+		r, _ := data_i.([]string)
 		return &r, found
-	} else {
-		return strings.NewReplacer(), found
 	}
+	return []string{}, found
 }
 
-func SetHtmlifyReplacerStringToCache(r *strings.Replacer) {
+func SetHtmlifyReplacerStringsToCache(r *strings.Replacer) {
 	key := HTMLIFY_REPLACER_STRINGS
 	setData(key, *r)
 }
 
-func DeleteHtmlifyReplacerStringFromCache() {
+func DeleteHtmlifyReplacerStringsFromCache() {
 	key := HTMLIFY_REPLACER_STRINGS
 	deleteData(key)
 }
