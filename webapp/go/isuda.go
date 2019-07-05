@@ -37,6 +37,8 @@ var (
 	re      *render.Render
 	store   *sessions.CookieStore
 
+	totalEntries int
+
 	errInvalidUser = errors.New("Invalid User")
 )
 
@@ -70,6 +72,12 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	replacerStrings := getReplacerStringsForHtmlify(r)
 	SetHtmlifyReplacerStringsToCache(replacerStrings)
 
+	row := db.QueryRow(`SELECT COUNT(*) FROM entry`)
+	err = row.Scan(&totalEntries)
+	if err != nil && err != sql.ErrNoRows {
+		panicIf(err)
+	}
+
 	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
 }
 
@@ -95,10 +103,9 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil && err != sql.ErrNoRows {
 		panicIf(err)
 	}
+
 	entries := make([]*Entry, 0, 10)
-
 	replacer := getReplacerForHtmlify(r)
-
 	for rows.Next() {
 		e := Entry{}
 		err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt)
@@ -109,12 +116,7 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	var totalEntries int
-	row := db.QueryRow(`SELECT COUNT(*) FROM entry`)
-	err = row.Scan(&totalEntries)
-	if err != nil && err != sql.ErrNoRows {
-		panicIf(err)
-	}
+	//var totalEntries int
 
 	lastPage := int(math.Ceil(float64(totalEntries) / float64(perPage)))
 	pages := make([]int, 0, 10)
@@ -178,6 +180,8 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 	replacerStrings = append(replacerStrings, keyword)
 	replacerStrings = append(replacerStrings, keywordLink)
 	SetHtmlifyReplacerStringsToCache(replacerStrings)
+
+	totalEntries++
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
