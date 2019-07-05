@@ -39,7 +39,6 @@ func getReplacerStringsForHtmlify(r *http.Request) []string {
 	return replacerStrings
 }
 
-// keyword-1, link-1, ..., keyword-n, link-n string list to Replacer
 func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
 	replacerStrings := getReplacerStringsForHtmlify(r)
 	replacer := strings.NewReplacer(replacerStrings...)
@@ -57,6 +56,5 @@ func htmlifyWithReplacer(w http.ResponseWriter, r *http.Request, content string,
 		return ""
 	}
 	content = replacer.Replace(content)
-	html := strings.Replace(content, "\n", "<br />\n", -1)
-	return html
+	return strings.Replace(content, "\n", "<br />\n", -1)
 }

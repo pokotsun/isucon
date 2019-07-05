@@ -218,13 +218,6 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 	SetHtmlifyReplacerStringsToCache(replacerStrings)
 
 	DeleteEntriesPerPageFromCache(1)
-	//entries := GetAllEntries(w, r)
-	//e := Entry{AuthorID: userID, Keyword: keyword, Description: description}
-	//replacer := getReplacerForHtmlify(r)
-	//e.Html = htmlifyWithReplacer(w, r, e.Description, replacer)
-	//e.Stars = loadStars(e.Keyword)
-	//entries = append(entries, e)
-	//SetEntriesToCache(entries)
 
 	totalEntries++
 
