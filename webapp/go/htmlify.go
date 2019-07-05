@@ -19,6 +19,7 @@ func GetKeywordLink(keyword string, r *http.Request) string {
 func getReplacerStringsForHtmlify(r *http.Request) []string {
 	replacerStrings, found := GetHtmlifyReplacerStringsFromCache()
 	if !found {
+		fmt.Println("Not Found ReplacerStrings!!")
 		rows, err := db.Query(`
 			SELECT keyword FROM entry ORDER BY keyword_length DESC
 		`)
