@@ -41,10 +41,10 @@ func GetStarNumFromCache(keyword string) (int, bool) {
 	return num, found
 }
 
-/*******************/
-/* HtmlifyReplacer */
-/*******************/
-func GetHtmlifyReplacerFromCache() (*strings.Replacer, bool) {
+/*************************/
+/* HtmlifyReplacerString */
+/*************************/
+func GetHtmlifyReplacerStringFromCache() (*strings.Replacer, bool) {
 	key := HTMLIFY_REPLACER
 	data_i, found := getDataFromCache(key)
 	if found {
@@ -55,12 +55,12 @@ func GetHtmlifyReplacerFromCache() (*strings.Replacer, bool) {
 	}
 }
 
-func SetHtmlifyReplacerToCache(r *strings.Replacer) {
+func SetHtmlifyReplacerStringToCache(r *strings.Replacer) {
 	key := HTMLIFY_REPLACER
 	setData(key, *r)
 }
 
-func DeleteHtmlifyReplacerFromCache() {
+func DeleteHtmlifyReplacerStringFromCache() {
 	key := HTMLIFY_REPLACER
 	deleteData(key)
 }

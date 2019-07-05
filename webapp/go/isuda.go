@@ -84,7 +84,9 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(p)
 
 	rows, err := db.Query(fmt.Sprintf(
-		"SELECT * FROM entry ORDER BY updated_at DESC LIMIT %d OFFSET %d",
+		//"SELECT * FROM entry ORDER BY updated_at DESC LIMIT %d OFFSET %d",
+		"SELECT id, author_id, keyword, description, updated_at, created_at FROM entry "+
+			"ORDER BY updated_at DESC LIMIT %d OFFSET %d",
 		perPage, perPage*(page-1),
 	))
 	if err != nil && err != sql.ErrNoRows {
@@ -96,7 +98,7 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		e := Entry{}
-		err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt, &e.KeywordLength)
+		err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt)
 		panicIf(err)
 		e.Html = htmlifyWithReplacer(w, r, e.Description, replacer)
 		e.Stars = loadStars(e.Keyword)
@@ -169,7 +171,6 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	//cachedKeywords = append(cachedKeywords, regexp.QuoteMeta(keyword))
 	DeleteHtmlifyReplacerFromCache() // Delete Htmlify Replacer because keyword link will be updated
-	SetHtmlifyReplacerToCache(getReplacerForHtmlify(r))
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
