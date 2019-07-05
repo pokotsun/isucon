@@ -54,9 +54,9 @@ func GetHtmlifyReplacerStringsFromCache() ([]string, bool) {
 	return []string{}, found
 }
 
-func SetHtmlifyReplacerStringsToCache(r *strings.Replacer) {
+func SetHtmlifyReplacerStringsToCache(r replacerStrings) {
 	key := HTMLIFY_REPLACER_STRINGS
-	setData(key, *r)
+	setData(key, r)
 }
 
 func DeleteHtmlifyReplacerStringsFromCache() {
