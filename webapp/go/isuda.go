@@ -322,9 +322,8 @@ func keywordByKeywordDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-// これ以上どうしろっちゅうねん
-func loadStars(keyword string) []*Star {
-	stars := make([]*Star, 0, 10)
+func loadStars(keyword string) []Star {
+	stars := make([]Star, 0, 10)
 	rows, err := db.Query(`SELECT * FROM star WHERE keyword = ?`, keyword)
 	if err != nil && err != sql.ErrNoRows {
 		panicIf(err)
@@ -335,7 +334,7 @@ func loadStars(keyword string) []*Star {
 		s := Star{}
 		err := rows.Scan(&s.ID, &s.Keyword, &s.UserName, &s.CreatedAt)
 		panicIf(err)
-		stars = append(stars, &s)
+		stars = append(stars, s)
 	}
 	rows.Close()
 
@@ -344,20 +343,21 @@ func loadStars(keyword string) []*Star {
 
 func starsHandler(w http.ResponseWriter, r *http.Request) {
 	keyword := r.FormValue("keyword")
-	rows, err := db.Query(`SELECT * FROM star WHERE keyword = ?`, keyword)
-	if err != nil && err != sql.ErrNoRows {
-		panicIf(err)
-		return
-	}
+	stars := loadStars(keyword)
+	//rows, err := db.Query(`SELECT * FROM star WHERE keyword = ?`, keyword)
+	//if err != nil && err != sql.ErrNoRows {
+	//	panicIf(err)
+	//	return
+	//}
 
-	stars := make([]Star, 0, 10)
-	for rows.Next() {
-		s := Star{}
-		err := rows.Scan(&s.ID, &s.Keyword, &s.UserName, &s.CreatedAt)
-		panicIf(err)
-		stars = append(stars, s)
-	}
-	rows.Close()
+	//stars := make([]Star, 0, 10)
+	//for rows.Next() {
+	//	s := Star{}
+	//	err := rows.Scan(&s.ID, &s.Keyword, &s.UserName, &s.CreatedAt)
+	//	panicIf(err)
+	//	stars = append(stars, s)
+	//}
+	//rows.Close()
 
 	re.JSON(w, http.StatusOK, map[string][]Star{
 		"result": stars,
