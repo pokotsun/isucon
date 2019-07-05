@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/patrickmn/go-cache"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -49,12 +48,12 @@ func GetHtmlifyReplacerStringsFromCache() ([]string, bool) {
 	data_i, found := getDataFromCache(key)
 	if found {
 		r, _ := data_i.([]string)
-		return &r, found
+		return r, found
 	}
 	return []string{}, found
 }
 
-func SetHtmlifyReplacerStringsToCache(r replacerStrings) {
+func SetHtmlifyReplacerStringsToCache(r []string) {
 	key := HTMLIFY_REPLACER_STRINGS
 	setData(key, r)
 }
