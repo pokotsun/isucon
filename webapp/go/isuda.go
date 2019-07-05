@@ -91,7 +91,7 @@ func GetEntriesPerPage(perPage, page int, w http.ResponseWriter, r *http.Request
 		panicIf(err)
 	}
 
-	entries := make([]*Entry, 0, 10)
+	entries := make([]Entry, 0, 10)
 	replacer := getReplacerForHtmlify(r)
 	for rows.Next() {
 		e := Entry{}
@@ -99,7 +99,7 @@ func GetEntriesPerPage(perPage, page int, w http.ResponseWriter, r *http.Request
 		panicIf(err)
 		e.Html = htmlifyWithReplacer(w, r, e.Description, replacer)
 		e.Stars = loadStars(e.Keyword)
-		entries = append(entries, &e)
+		entries = append(entries, e)
 	}
 	rows.Close()
 
@@ -132,7 +132,7 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 
 	re.HTML(w, http.StatusOK, "index", struct {
 		Context  context.Context
-		Entries  []*Entry
+		Entries  []Entry
 		Page     int
 		LastPage int
 		Pages    []int

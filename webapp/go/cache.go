@@ -56,7 +56,7 @@ func DeleteHtmlifyReplacerStringsFromCache() {
 /***************************/
 /******** Entries **********/
 /***************************/
-func GetEntriesFromCache() ([]Entries, bool) {
+func GetEntriesFromCache() ([]Entry, bool) {
 	key := ENTRIES_KEY
 	data_i, found := getDataFromCache(key)
 	if found {
@@ -66,9 +66,9 @@ func GetEntriesFromCache() ([]Entries, bool) {
 	return []Entry{}, found
 }
 
-func SetEntriesToCache(entries []Entries) {
+func SetEntriesToCache(entries []Entry) {
 	key := ENTRIES_KEY
-	setData(key, r)
+	setData(key, entries)
 }
 
 /***********************/
