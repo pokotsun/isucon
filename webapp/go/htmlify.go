@@ -32,10 +32,10 @@ func getReplacerStringForHtmlify(r *http.Request) []string {
 
 // keyword-1, link-1, ..., keyword-n, link-n string list to Replacer
 func getReplacerForHtmlify(r *http.Request) *strings.Replacer {
-	rows, err := db.Query(`
-		SELECT keyword FROM entry ORDER BY keyword_length DESC
-		`)
-	panicIf(err)
+	//rows, err := db.Query(`
+	//	SELECT keyword FROM entry ORDER BY keyword_length DESC
+	//	`)
+	//panicIf(err)
 	//keywords := make([]string, 0, 20000)
 	//for rows.Next() {
 	//	var keyword string
