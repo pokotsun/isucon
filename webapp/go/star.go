@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	allStars = make([]Star, 0, 2000)
+	allStars = make([]*Star, 0, 2000)
 )
 
-func loadStars(keyword string) []Star {
-	stars := make([]Star, 0, 10)
+func loadStars(keyword string) []*Star {
+	stars := make([]*Star, 0, 10)
 	for _, star := range allStars {
 		if star.Keyword == keyword {
 			stars = append(stars, star)
@@ -38,7 +38,7 @@ func loadStars(keyword string) []Star {
 func starsHandler(w http.ResponseWriter, r *http.Request) {
 	keyword := r.FormValue("keyword")
 	stars := loadStars(keyword)
-	re.JSON(w, http.StatusOK, map[string][]Star{
+	re.JSON(w, http.StatusOK, map[string][]*Star{
 		"result": stars,
 	})
 }
@@ -57,7 +57,7 @@ func starsPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := r.FormValue("user")
-	newStar := Star{Keyword: keyword, UserName: user, CreatedAt: time.Now()}
+	newStar := &Star{Keyword: keyword, UserName: user, CreatedAt: time.Now()}
 	allStars = append(allStars, newStar)
 	//_, err = db.Exec(`INSERT INTO star (keyword, user_name, created_at) VALUES (?, ?, NOW())`, keyword, user)
 	//panicIf(err)
