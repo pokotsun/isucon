@@ -425,8 +425,8 @@ func queryHaveRead(userID, chID int64) (int64, error) {
 	}
 	h := HaveRead{}
 
-	err := db.Get(&h, "SELECT * FROM haveread WHERE user_id = ? AND channel_id = ?",
-		userID, chID)
+	err := db.Get(&h, "SELECT * FROM haveread WHERE channel_id = ? AND user_id = ?",
+		chID, userID)
 
 	if err == sql.ErrNoRows {
 		return 0, nil
