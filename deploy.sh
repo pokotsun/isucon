@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #git reset --hard HEAD && git pull origin dev
-git reset --hard HEAD && git fetch && git checkout $1
+git reset --hard HEAD && git fetch && git checkout $1 && git pull origin $1
 #sudo ./isubata/db/init.sh
 #zcat ~/isubata/bench/isucon7q-initial-dataset.sql.gz | sudo mysql isubata
 cd webapp/go && make
