@@ -9,7 +9,9 @@ cd ../..
 ## logからデータを削除
 sudo sh -c 'echo "" > /var/log/nginx/access.log'
 sudo sh -c 'echo "" > /var/log/mysql/slow.log'
-sudo cp conf/my.cnf /etc/mysql/my.cnf
+
+sudo cp conf/nginx.conf /etc/nginx/nginx.conf
+sudo cp conf/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
 #sudo sh -c 'echo "" > /var/log/mariadb/slow.sql'
 #sudo sh -c 'echo "" > /var/log/mariadb/general.sql'
 sudo systemctl restart isubata.golang.service
