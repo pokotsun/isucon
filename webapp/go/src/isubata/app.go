@@ -83,52 +83,6 @@ func init() {
 	log.Printf("Succeeded to connect db.")
 }
 
-type User struct {
-	ID          int64     `json:"-" db:"id"`
-	Name        string    `json:"name" db:"name"`
-	Salt        string    `json:"-" db:"salt"`
-	Password    string    `json:"-" db:"password"`
-	DisplayName string    `json:"display_name" db:"display_name"`
-	AvatarIcon  string    `json:"avatar_icon" db:"avatar_icon"`
-	CreatedAt   time.Time `json:"-" db:"created_at"`
-}
-
-func getUser(userID int64) (*User, error) {
-	u := User{}
-	if err := db.Get(&u, "SELECT * FROM user WHERE id = ?", userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &u, nil
-}
-
-func addMessage(channelID, userID int64, content string) (int64, error) {
-	res, err := db.Exec(
-		"INSERT INTO message (channel_id, user_id, content, created_at) VALUES (?, ?, ?, NOW())",
-		channelID, userID, content)
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
-}
-
-type Message struct {
-	ID        int64     `db:"id"`
-	ChannelID int64     `db:"channel_id"`
-	UserID    int64     `db:"user_id"`
-	Content   string    `db:"content"`
-	CreatedAt time.Time `db:"created_at"`
-}
-
-func queryMessages(chanID, lastID int64) ([]Message, error) {
-	msgs := []Message{}
-	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
-		lastID, chanID)
-	return msgs, err
-}
-
 func sessUserID(c echo.Context) int64 {
 	sess, _ := session.Get("session", c)
 	var userID int64
@@ -174,32 +128,6 @@ redirect:
 	return nil, nil
 }
 
-const LettersAndDigits = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-func randomString(n int) string {
-	b := make([]byte, n)
-	z := len(LettersAndDigits)
-
-	for i := 0; i < n; i++ {
-		b[i] = LettersAndDigits[rand.Intn(z)]
-	}
-	return string(b)
-}
-
-func register(name, password string) (int64, error) {
-	salt := randomString(20)
-	digest := fmt.Sprintf("%x", sha1.Sum([]byte(salt+password)))
-
-	res, err := db.Exec(
-		"INSERT INTO user (name, salt, password, display_name, avatar_icon, created_at)"+
-			" VALUES (?, ?, ?, ?, ?, NOW())",
-		name, salt, digest, name, "default.png")
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
-}
-
 // request handlers
 
 func getInitialize(c echo.Context) error {
@@ -219,44 +147,6 @@ func getIndex(c echo.Context) error {
 
 	return c.Render(http.StatusOK, "index", map[string]interface{}{
 		"ChannelID": nil,
-	})
-}
-
-type ChannelInfo struct {
-	ID          int64     `db:"id"`
-	Name        string    `db:"name"`
-	Description string    `db:"description"`
-	UpdatedAt   time.Time `db:"updated_at"`
-	CreatedAt   time.Time `db:"created_at"`
-}
-
-func getChannel(c echo.Context) error {
-	user, err := ensureLogin(c)
-	if user == nil {
-		return err
-	}
-	cID, err := strconv.Atoi(c.Param("channel_id"))
-	if err != nil {
-		return err
-	}
-	channels := []ChannelInfo{}
-	err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
-	if err != nil {
-		return err
-	}
-
-	var desc string
-	for _, ch := range channels {
-		if ch.ID == int64(cID) {
-			desc = ch.Description
-			break
-		}
-	}
-	return c.Render(http.StatusOK, "channel", map[string]interface{}{
-		"ChannelID":   cID,
-		"Channels":    channels,
-		"User":        user,
-		"Description": desc,
 	})
 }
 
@@ -350,22 +240,6 @@ func postMessage(c echo.Context) error {
 	return c.NoContent(204)
 }
 
-func jsonifyMessage(m Message) (map[string]interface{}, error) {
-	u := User{}
-	err := db.Get(&u, "SELECT name, display_name, avatar_icon FROM user WHERE id = ?",
-		m.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make(map[string]interface{})
-	r["id"] = m.ID
-	r["user"] = u
-	r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
-	r["content"] = m.Content
-	return r, nil
-}
-
 func getMessage(c echo.Context) error {
 	userID := sessUserID(c)
 	if userID == 0 {
@@ -407,76 +281,6 @@ func getMessage(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response)
-}
-
-func queryChannels() ([]int64, error) {
-	res := []int64{}
-	err := db.Select(&res, "SELECT id FROM channel")
-	return res, err
-}
-
-func queryHaveRead(userID, chID int64) (int64, error) {
-	type HaveRead struct {
-		UserID    int64     `db:"user_id"`
-		ChannelID int64     `db:"channel_id"`
-		MessageID int64     `db:"message_id"`
-		UpdatedAt time.Time `db:"updated_at"`
-		CreatedAt time.Time `db:"created_at"`
-	}
-	h := HaveRead{}
-
-	err := db.Get(&h, "SELECT * FROM haveread WHERE user_id = ? AND channel_id = ?",
-		userID, chID)
-
-	if err == sql.ErrNoRows {
-		return 0, nil
-	} else if err != nil {
-		return 0, err
-	}
-	return h.MessageID, nil
-}
-
-func fetchUnread(c echo.Context) error {
-	userID := sessUserID(c)
-	if userID == 0 {
-		return c.NoContent(http.StatusForbidden)
-	}
-
-	time.Sleep(time.Second)
-
-	channels, err := queryChannels()
-	if err != nil {
-		return err
-	}
-
-	resp := []map[string]interface{}{}
-
-	for _, chID := range channels {
-		lastID, err := queryHaveRead(userID, chID)
-		if err != nil {
-			return err
-		}
-
-		var cnt int64
-		if lastID > 0 {
-			err = db.Get(&cnt,
-				"SELECT COUNT(*) as cnt FROM message WHERE channel_id = ? AND ? < id",
-				chID, lastID)
-		} else {
-			err = db.Get(&cnt,
-				"SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?",
-				chID)
-		}
-		if err != nil {
-			return err
-		}
-		r := map[string]interface{}{
-			"channel_id": chID,
-			"unread":     cnt}
-		resp = append(resp, r)
-	}
-
-	return c.JSON(http.StatusOK, resp)
 }
 
 func getHistory(c echo.Context) error {
@@ -706,18 +510,6 @@ func getIcon(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 	return c.Blob(http.StatusOK, mime, data)
-}
-
-func tAdd(a, b int64) int64 {
-	return a + b
-}
-
-func tRange(a, b int64) []int64 {
-	r := make([]int64, b-a+1)
-	for i := int64(0); i <= (b - a); i++ {
-		r[i] = a + i
-	}
-	return r
 }
 
 func main() {
