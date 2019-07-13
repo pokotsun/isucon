@@ -265,7 +265,7 @@ func getMessage(c echo.Context) error {
 		_, err := db.Exec("INSERT INTO haveread (user_id, channel_id, message_id, updated_at, created_at)"+
 			" VALUES (?, ?, ?, NOW(), NOW())"+
 			" ON DUPLICATE KEY UPDATE message_id = ?, updated_at = NOW()",
-			userID, chanID, response[0]["id"], response[0]["id"])
+			userID, chanID, jsonifiedMessages[0]["id"], jsonifiedMessages[0]["id"])
 		if err != nil {
 			return err
 		}
