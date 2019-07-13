@@ -20,6 +20,7 @@ func jsonifyMessageWith(chanID, lastID int64) ([]map[string]interface{}, error) 
 	if err != nil {
 		return response, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var m Message
 		var u User
@@ -27,11 +28,7 @@ func jsonifyMessageWith(chanID, lastID int64) ([]map[string]interface{}, error) 
 		if err != nil {
 			return response, err
 		}
-		r := make(map[string]interface{})
-		r["id"] = m.ID
-		r["user"] = u
-		r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
-		r["content"] = m.Content
+		r := makeResponse(u, m)
 		response = append(response, r)
 	}
 	return response, nil
@@ -43,6 +40,7 @@ func jsonifyMessageWithChannel(chID, limit, offset int64) ([]map[string]interfac
 	if err != nil {
 		return response, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var m Message
 		var u User
@@ -50,14 +48,19 @@ func jsonifyMessageWithChannel(chID, limit, offset int64) ([]map[string]interfac
 		if err != nil {
 			return response, err
 		}
-		r := make(map[string]interface{})
-		r["id"] = m.ID
-		r["user"] = u
-		r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
-		r["content"] = m.Content
+		r := makeResponse(u, m)
 		response = append(response, r)
 	}
 	return response, nil
+}
+
+func makeResponse(u User, m Message) map[string]interface{} {
+	r := make(map[string]interface{})
+	r["id"] = m.ID
+	r["user"] = u
+	r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
+	r["content"] = m.Content
+	return r
 }
 
 func reverseJsonifiedMessage(mjson []map[string]interface{}) []map[string]interface{} {
