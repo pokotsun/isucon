@@ -33,3 +33,11 @@ func jsonifyMessageWith(chanID, lastID int64) ([]map[string]interface{}, error) 
 	}
 	return response, nil
 }
+
+func reverseJsonifiedMessage(mjson []map[string]interface{}) []map[string]interface{} {
+	response := make([]map[string]interface{}, 0, 100)
+	for i := len(mjson) - 1; i >= 0; i-- {
+		response = append(response, mjson[i])
+	}
+	return response
+}

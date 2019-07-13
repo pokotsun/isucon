@@ -255,14 +255,11 @@ func getMessage(c echo.Context) error {
 		return err
 	}
 
-	jsonfiedMessages, err := jsonifyMessageWith(chanID, lastID)
+	jsonifiedMessages, err := jsonifyMessageWith(chanID, lastID)
 	if err != nil {
 		return err
 	}
-	response := make([]map[string]interface{}, 0, 100)
-	for i := len(jsonfiedMessages) - 1; i >= 0; i-- {
-		response = append(response, jsonfiedMessages[i])
-	}
+	response := reverseJsonifiedMessage(jsonifiedMessages)
 
 	if len(response) > 0 {
 		_, err := db.Exec("INSERT INTO haveread (user_id, channel_id, message_id, updated_at, created_at)"+
