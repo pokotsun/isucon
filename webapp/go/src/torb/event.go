@@ -67,12 +67,11 @@ func getEvents(all bool) ([]*Event, error) {
 		}
 		event := getEventByID(events, reservation.EventID)
 		if event != nil {
-			sheet, ok := getSheetByID(reservation.SheetID)
-			if ok < 0 {
+			err := assignReservation(event, reservation)
+			if err != nil {
 				return nil, err
 			}
-			event.Remains--
-			event.Sheets[sheet.Rank].Remains--
+
 		}
 	}
 
@@ -136,6 +135,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail[sheet.Num-1].ReservedAtUnix = reservation.ReservedAt.Unix()
 
 		event.Sheets[sheet.Rank].Remains--
+		event.Remains--
 	}
 
 	event.Total = 1000
@@ -184,4 +184,14 @@ func getEventWithoutDetail(event Event, loginUserID int64) (*Event, error) {
 	event.Total = 1000
 
 	return &event, nil
+}
+
+func assignReservation(event *Event, reservation Reservation) error {
+	sheet, ok := getSheetByID(reservation.SheetID)
+	if ok < 0 {
+		return errors.New("not found")
+	}
+	event.Remains--
+	event.Sheets[sheet.Rank].Remains--
+	return nil
 }
