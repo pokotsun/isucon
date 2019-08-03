@@ -179,6 +179,7 @@ func getEventWithoutDetail(event Event, loginUserID int64) (*Event, error) {
 		}
 
 		event.Sheets[sheet.Rank].Remains--
+		evetn.Remains--
 	}
 
 	event.Total = 1000
