@@ -26,6 +26,6 @@ bin/bench -remotes=127.0.0.1 -output result.json
 )
 jq . < bench/result.json
 sudo /usr/local/bin/alp -f /var/log/nginx/access.log -r --sum | head -n 30
-sudo mysqldumpslow -s t /var/log/mariadb/slow.log | head -n 7
+#sudo mysqldumpslow -s t /var/log/mariadb/slow.log | head -n 5
 #cd isubata/bench && ./bin/bench -remotes=127.0.0.1 -output result.json
 #jq . < result.json
