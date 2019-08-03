@@ -149,63 +149,56 @@ func main() {
 			return resError(c, "forbidden", 403)
 		}
 
-		rows, err := db.Query("SELECT * FROM reservations r INNER JOIN events e ON e.id = r.event_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5", user.ID)
+		rows, err := db.Query("SELECT * FROM reservations r INNER JOIN events e ON e.id = r.event_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC", user.ID)
 		if err != nil {
 			return err
 		}
 		defer rows.Close()
 
 		var recentReservations []Reservation
+		var recentEvents []*Event
+		var eventIDs []int64
+		var totalPrice int
+
 		for rows.Next() {
 			var reservation Reservation
 			var event Event
 			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
 				return err
 			}
-
-			sheet, ok := getSheetByID(reservation.SheetID)
-			if ok < 0 {
-				return errors.New("not found")
-			}
-
-			price := sheet.Price + event.Price
-
-			reservation.Event = &event
-			reservation.SheetRank = sheet.Rank
-			reservation.SheetNum = sheet.Num
-			reservation.Price = price
-			reservation.ReservedAtUnix = reservation.ReservedAt.Unix()
 			if reservation.CanceledAt != nil {
 				reservation.CanceledAtUnix = reservation.CanceledAt.Unix()
+				totalPrice += int(event.Price)
 			}
-			recentReservations = append(recentReservations, reservation)
+
+			if len(recentReservations) < 5 {
+				sheet, ok := getSheetByID(reservation.SheetID)
+				if ok < 0 {
+					return errors.New("not found")
+				}
+
+				price := sheet.Price + event.Price
+
+				reservation.Event = &event
+				reservation.SheetRank = sheet.Rank
+				reservation.SheetNum = sheet.Num
+				reservation.Price = price
+				reservation.ReservedAtUnix = reservation.ReservedAt.Unix()
+				recentReservations = append(recentReservations, reservation)
+			}
+
+			if len(recentEvents) < 5 && !contains(eventIDs, event.ID) {
+				e, err := getEventWithoutDetail(event, -1)
+				if err != nil {
+					return err
+				}
+				recentEvents = append(recentEvents, e)
+				eventIDs = append(eventIDs, event.ID)
+			}
 		}
+
 		if recentReservations == nil {
 			recentReservations = make([]Reservation, 0)
-		}
-
-		var totalPrice int
-		if err := db.QueryRow("SELECT IFNULL(SUM(e.price + s.price), 0) FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.canceled_at IS NULL", user.ID).Scan(&totalPrice); err != nil {
-			return err
-		}
-
-		rows, err = db.Query("SELECT e.* FROM reservations r INNER JOIN events e on e.id = r.event_id WHERE user_id = ? GROUP BY r.event_id ORDER BY MAX(IFNULL(r.canceled_at, r.reserved_at)) DESC LIMIT 5", user.ID)
-		if err != nil {
-			return err
-		}
-		defer rows.Close()
-
-		var recentEvents []*Event
-		for rows.Next() {
-			var event Event
-			if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-				return err
-			}
-			e, err := getEventWithoutDetail(event, -1)
-			if err != nil {
-				return err
-			}
-			recentEvents = append(recentEvents, e)
 		}
 		if recentEvents == nil {
 			recentEvents = make([]*Event, 0)
