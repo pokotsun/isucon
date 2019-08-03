@@ -60,10 +60,10 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 
 	event.Sheets = map[string]*Sheets{
-		"S": &Sheets{Total: 50, Remains: 0, Price: 5000 + event.Price},
-		"A": &Sheets{Total: 150, Remains: 0, Price: 3000 + event.Price},
-		"B": &Sheets{Total: 300, Remains: 0, Price: 1000 + event.Price},
-		"C": &Sheets{Total: 500, Remains: 0, Price: 0 + event.Price},
+		"S": &Sheets{Total: 50, Remains: 50, Price: 5000 + event.Price},
+		"A": &Sheets{Total: 150, Remains: 150, Price: 3000 + event.Price},
+		"B": &Sheets{Total: 300, Remains: 300, Price: 1000 + event.Price},
+		"C": &Sheets{Total: 500, Remains: 500, Price: 0 + event.Price},
 	}
 
 	// 1000席の初期化
@@ -99,6 +99,8 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Detail[sheet.Num-1].Mine = reservation.UserID == loginUserID
 		event.Sheets[sheet.Rank].Detail[sheet.Num-1].Reserved = true
 		event.Sheets[sheet.Rank].Detail[sheet.Num-1].ReservedAtUnix = reservation.ReservedAt.Unix()
+
+		event.Sheets[sheet.Rank].Remains--
 	}
 
 	return &event, nil
