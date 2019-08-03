@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"sort"
@@ -317,21 +318,34 @@ func main() {
 			return resError(c, "invalid_rank", 400)
 		}
 
-		var sheet Sheet
+		var sheets []Sheet
 		var reservationID int64
-		for {
-			if err := db.QueryRow("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1", event.ID, params.Rank).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-				if err == sql.ErrNoRows {
-					return resError(c, "sold_out", 409)
-				}
+
+		rows, err := db.Query("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ?", event.ID, params.Rank)
+		if err == sql.ErrNoRows {
+			return resError(c, "sold_out", 409)
+		}
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var sheet Sheet
+			if err := rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
 				return err
 			}
+			sheets = append(sheets, sheet)
+		}
 
+		var sheet Sheet
+		for {
 			tx, err := db.Begin()
 			if err != nil {
 				return err
 			}
-
+			rand.Seed(time.Now().UnixNano())
+			sheet = sheets[rand.Intn(len(sheets))]
 			res, err := tx.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", event.ID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000"))
 			if err != nil {
 				tx.Rollback()
