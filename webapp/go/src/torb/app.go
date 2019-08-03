@@ -399,12 +399,10 @@ func main() {
 			return resError(c, "invalid_rank", 404)
 		}
 
-		var sheet Sheet
-		if err := db.QueryRow("SELECT * FROM sheets WHERE `rank` = ? AND num = ?", rank, num).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-			if err == sql.ErrNoRows {
-				return resError(c, "invalid_sheet", 404)
-			}
-			return err
+		num64, _ := strconv.ParseInt(num, 10, 64)
+		sheet, ok := getSheetByNumAndRank(num64, rank)
+		if ok < 0 {
+			return resError(c, "invalid_sheet", 404)
 		}
 
 		tx, err := db.Begin()
