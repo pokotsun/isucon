@@ -92,6 +92,8 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
 		return nil, err
 	}
+	event.Total = 1000
+	event.Remains = 1000
 
 	event.Sheets = map[string]*Sheets{
 		"S": &Sheets{Total: 50, Remains: 50, Price: 5000 + event.Price},
@@ -138,7 +140,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Remains--
 	}
 
-	event.Total = 1000
 	return &event, nil
 }
 
@@ -164,6 +165,9 @@ func getEventWithoutDetail(event Event, loginUserID int64) (*Event, error) {
 		return nil, err
 	}
 
+	event.Total = 1000
+	event.Remains = 1000
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -181,8 +185,6 @@ func getEventWithoutDetail(event Event, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Remains--
 		event.Remains--
 	}
-
-	event.Total = 1000
 
 	return &event, nil
 }
