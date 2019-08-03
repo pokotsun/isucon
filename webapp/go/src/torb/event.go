@@ -97,6 +97,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Remains--
 	}
 
+	event.Total = 1000
 	return &event, nil
 }
 
@@ -138,6 +139,8 @@ func getEventWithoutDetail(event Event, loginUserID int64) (*Event, error) {
 
 		event.Sheets[sheet.Rank].Remains--
 	}
+
+	event.Total = 1000
 
 	return &event, nil
 }
