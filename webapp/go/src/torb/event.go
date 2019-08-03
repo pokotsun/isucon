@@ -38,13 +38,54 @@ func getEvents(all bool) ([]*Event, error) {
 		if !all && !event.PublicFg {
 			continue
 		}
-		e, err := getEventWithoutDetail(event, -1)
+		// e, err := getEventWithoutDetail(event, -1)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		event.Total = 1000
+		event.Remains = 1000
+		event.Sheets = map[string]*Sheets{
+			"S": &Sheets{Total: 50, Remains: 50, Price: 5000 + event.Price},
+			"A": &Sheets{Total: 150, Remains: 150, Price: 3000 + event.Price},
+			"B": &Sheets{Total: 300, Remains: 300, Price: 1000 + event.Price},
+			"C": &Sheets{Total: 500, Remains: 500, Price: 0 + event.Price},
+		}
+
+		events = append(events, &event)
+	}
+
+	rows, err = db.Query("SELECT * FROM reservations WHERE canceled_at IS NULL")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var reservation Reservation
+		err = rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
 		if err != nil {
 			return nil, err
 		}
-		events = append(events, e)
+		event := getEventByID(events, reservation.EventID)
+		if event != nil {
+			sheet, ok := getSheetByID(reservation.SheetID)
+			if ok < 0 {
+				return nil, err
+			}
+			event.Remains--
+			event.Sheets[sheet.Rank].Remains--
+		}
 	}
+
 	return events, nil
+}
+
+func getEventByID(events []*Event, id int64) *Event {
+	for k := range events {
+		if events[k].ID == id {
+			return events[k]
+		}
+	}
+	return nil
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
