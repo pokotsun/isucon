@@ -61,6 +61,7 @@ func initReplacerToCache(r *http.Request) error {
 
 	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	conn.Close()
@@ -85,7 +86,8 @@ func initReplacerToCache(r *http.Request) error {
 			return err
 		}
 		data, _ := json.Marshal(keyword)
-		pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
+		err := pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
+		fmt.Println(err)
 
 		u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
 		panicIf(err)
