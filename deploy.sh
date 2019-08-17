@@ -10,7 +10,6 @@ sudo ./db/db_setup.sh
 
 ## application build
 rm go/isuda
-rm go/isutar
 (
 cd go
 make
