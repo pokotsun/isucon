@@ -71,6 +71,9 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := db.Exec(`DELETE FROM entry WHERE id > 7101`)
 	panicIf(err)
 
+	_, err = db.Exec("TRUNCATE star")
+	panicIf(err)
+
 	resp, err := http.Get(fmt.Sprintf("%s/initialize", isutarEndpoint))
 	panicIf(err)
 	defer resp.Body.Close()
@@ -340,6 +343,30 @@ func setContext(r *http.Request, key, val interface{}) {
 	*r = *r2
 }
 
+func starsPostHandler(w http.ResponseWriter, r *http.Request) {
+	keyword := r.FormValue("keyword")
+
+	origin := os.Getenv("ISUDA_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:5000"
+	}
+	u, err := r.URL.Parse(fmt.Sprintf("%s/keyword/%s", origin, pathURIEscape(keyword)))
+	panicIf(err)
+	resp, err := http.Get(u.String())
+	panicIf(err)
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		notFound(w)
+		return
+	}
+
+	user := r.FormValue("user")
+	_, err = db.Exec(`INSERT INTO star (keyword, user_name, created_at) VALUES (?, ?, NOW())`, keyword, user)
+	panicIf(err)
+
+	re.JSON(w, http.StatusOK, map[string]string{"result": "ok"})
+}
+
 func getSession(w http.ResponseWriter, r *http.Request) *sessions.Session {
 	session, _ := store.Get(r, sessionName)
 	return session
@@ -417,6 +444,9 @@ func main() {
 	r.HandleFunc("/initialize", myHandler(initializeHandler)).Methods("GET")
 	r.HandleFunc("/robots.txt", myHandler(robotsHandler))
 	r.HandleFunc("/keyword", myHandler(keywordPostHandler)).Methods("POST")
+
+	s := r.PathPrefix("/stars").Subrouter()
+	s.Methods("POST").HandlerFunc(myHandler(starsPostHandler))
 
 	l := r.PathPrefix("/login").Subrouter()
 	l.Methods("GET").HandlerFunc(myHandler(loginHandler))
