@@ -1,12 +1,10 @@
 package main
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"html"
 	"net/http"
-	"regexp"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -17,37 +15,12 @@ func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 	if content == "" {
 		return ""
 	}
-	rows, err := db.Query(`
-		SELECT * FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
-	`)
-	panicIf(err)
-	entries := make([]*Entry, 0, 500)
-	for rows.Next() {
-		e := Entry{}
-		err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt)
-		panicIf(err)
-		entries = append(entries, &e)
+	rep_data, err := getReplacerFromCache()
+	if err != nil {
+		return ""
 	}
-	rows.Close()
-
-	keywords := make([]string, 0, 500)
-	for _, entry := range entries {
-		keywords = append(keywords, regexp.QuoteMeta(entry.Keyword))
-	}
-	re := regexp.MustCompile("(" + strings.Join(keywords, "|") + ")")
-	kw2sha := make(map[string]string)
-	content = re.ReplaceAllStringFunc(content, func(kw string) string {
-		kw2sha[kw] = "isuda_" + fmt.Sprintf("%x", sha1.Sum([]byte(kw)))
-		return kw2sha[kw]
-	})
-	content = html.EscapeString(content)
-	for kw, hash := range kw2sha {
-		u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(kw))
-		panicIf(err)
-		link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(kw))
-		content = strings.Replace(content, hash, link, -1)
-	}
-	return strings.Replace(content, "\n", "<br />\n", -1)
+	replacer := strings.NewReplacer(rep_data...)
+	return replacer.Replace(content)
 }
 
 func initReplacerToCache(r *http.Request) error {
@@ -96,4 +69,46 @@ func initReplacerToCache(r *http.Request) error {
 		pushListDataToCache(key, data)
 	}
 	return nil
+}
+
+func pushReplacerToCache(keyword string, r *http.Request) {
+	data, _ := json.Marshal(keyword)
+	err := pushListDataToCache(key, data)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
+	if err != nil {
+		fmt.Println(err)
+	}
+	link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
+	data, _ = json.Marshal(link)
+	pushListDataToCache(key, data)
+}
+
+func removeReplacerFromCache(keyword string, r *http.Request) {
+	data, _ := json.Marshal(keyword)
+	removeListDataFromCache(REPLACER_KEY, data)
+
+	u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
+	if err != nil {
+		fmt.Println(err)
+	}
+	link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
+	data, _ = json.Marshal(link)
+	removeListDataFromCache(REPLACER_KEY, data)
+}
+
+func getReplacerFromCache() ([]string, error) {
+	data, err := getListDataFromCache(REPLACER_KEY)
+	if err != nil {
+		return nil, err
+	}
+	var rep_data []string
+	err = json.Unmarshal(data, &rep_data)
+	if err != nil {
+		return nil, err
+	}
+	return rep_data, nil
 }
