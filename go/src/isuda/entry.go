@@ -73,7 +73,7 @@ func initReplacerToCache(r *http.Request) error {
 
 func pushReplacerToCache(keyword string, r *http.Request) {
 	data, _ := json.Marshal(keyword)
-	err := pushListDataToCache(key, data)
+	err := pushListDataToCache(REPLACER_KEY, data)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -84,7 +84,10 @@ func pushReplacerToCache(keyword string, r *http.Request) {
 	}
 	link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
 	data, _ = json.Marshal(link)
-	pushListDataToCache(key, data)
+	err = pushListDataToCache(REPLACER_KEY, data)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func removeReplacerFromCache(keyword string, r *http.Request) {
