@@ -33,7 +33,7 @@ sudo cp conf/my.cnf /etc/mysql/my.cnf
 echo 'systemctl are restarting...'
 sudo systemctl restart mysql.service
 sudo systemctl restart isuda.go.service
-sudo systemctl restart isutar.go.service
+#sudo systemctl restart isutar.go.service
 sudo systemctl restart nginx.service
 sudo systemctl restart redis.service
 echo 'Finished to restart!!'
