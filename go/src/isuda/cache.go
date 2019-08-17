@@ -2,9 +2,9 @@ package main
 
 import (
 	// "encoding/json"
+	"encoding/json"
 	"fmt"
 	"strings"
-	"encoding/json"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -13,9 +13,9 @@ const (
 	redisHost = "192.168.0.115"
 	redisPort = "6379"
 
-	REPLACER_KEY = "REP_KEY"
-	key = "KEY"
-	eventStarskeyPrefix="STARS-ENTRY-"
+	REPLACER_KEY        = "REP_KEY"
+	ENTRY_HTML          = "ENTRY_HTML"
+	eventStarskeyPrefix = "STARS-ENTRY-"
 )
 
 func makeEventStarsKey(keyword string) string {
