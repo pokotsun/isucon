@@ -51,20 +51,13 @@ func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 }
 
 func initReplacerToCache(r *http.Request) error {
-	rows, err := db.Query(`
-		SELECT keywords FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
-	`)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
 
 	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	conn.Close()
+	defer conn.Close()
 
 	strs := []string{
 		`&`, "&amp;",
@@ -73,6 +66,15 @@ func initReplacerToCache(r *http.Request) error {
 		`>`, "&gt;",
 		`"`, "&#34;",
 	}
+
+	rows, err := db.Query(`
+		SELECT keywords FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
+	`)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer rows.Close()
 	for i := 0; i < len(strs); i += 2 {
 		data, _ := json.Marshal(strs[i])
 		pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
@@ -83,11 +85,14 @@ func initReplacerToCache(r *http.Request) error {
 		var keyword string
 		err = rows.Scan(&keyword)
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 		data, _ := json.Marshal(keyword)
 		err := pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
-		fmt.Println(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
 		panicIf(err)
