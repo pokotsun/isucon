@@ -7,10 +7,10 @@ deps:
 	go get github.com/Songmu/strrand
 	go get github.com/unrolled/render
 
-isuda: deps
-	go build -o isuda isuda.go type.go util.go
+isuda:
+	go build -o isuda ./src/isuda/isuda.go ./src/isuda/type.go ./src/isuda/util.go
 
-isutar: deps
-	go build -o isutar isutar.go type.go util.go
+isutar:
+	go build -o isutar ./src/isuda/isutar.go ./src/isuda/type.go ./src/isuda/util.go
 
 .PHONY: all deps
