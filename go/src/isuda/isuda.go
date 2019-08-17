@@ -71,6 +71,9 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := db.Exec(`DELETE FROM entry WHERE id > 7101`)
 	panicIf(err)
 
+	FLUSH_ALL()
+	initReplacerToCache(r)
+
 	resp, err := http.Get(fmt.Sprintf("%s/initialize", isutarEndpoint))
 	panicIf(err)
 	defer resp.Body.Close()
@@ -310,7 +313,6 @@ func keywordByKeywordDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	panicIf(err)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
-
 
 func isSpamContents(content string) bool {
 	v := url.Values{}

@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	redisHost = "127.0.0.1"
+	redisHost = "192.168.0.115"
 	redisPort = "6379"
 
-	key = "KEY"
+	key          = "KEY"
+	REPLACER_KEY = "REP_KEY"
 )
 
 // func main() {}
@@ -214,6 +215,14 @@ func pushListDataToCache(key string, data []byte) error {
 	return nil
 }
 
+func pushListDataToCacheWithConnection(key string, data []byte, conn redis.Conn) error {
+	_, err := conn.Do("RPUSH", key, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // マッチするものを1つ削除
 func removeListDataFromCache(key string, data []byte) error {
 	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
@@ -319,6 +328,14 @@ func removeSortedSetDataFromCache(key string, data []byte) error {
 		return err
 	}
 	_, err = conn.Do("ZREM", key, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func pushSortedSetDataToCacheWithConnection(key string, score int64, data []byte, conn redis.Conn) error {
+	_, err := conn.Do("ZADD", key, score, data)
 	if err != nil {
 		return err
 	}
