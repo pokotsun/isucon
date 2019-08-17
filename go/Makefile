@@ -1,4 +1,4 @@
-all: isuda isutar
+all: isuda
 
 deps:
 	go get github.com/go-sql-driver/mysql
@@ -9,9 +9,5 @@ deps:
 
 isuda:
 	go build -o isuda ./src/isuda/isuda.go ./src/isuda/type.go ./src/isuda/util.go ./src/isuda/entry.go ./src/isuda/star.go ./src/isuda/cache.go
-
-
-isutar:
-	go build -o isutar ./src/isuda/isutar.go ./src/isuda/type.go ./src/isuda/util.go ./src/isuda/cache.go
 
 .PHONY: all deps

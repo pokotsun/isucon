@@ -10,7 +10,6 @@ sudo ./db/db_setup.sh
 
 ## application build
 rm go/isuda
-rm go/isutar
 (
 cd go
 make
@@ -20,9 +19,9 @@ make
 LOGPATH=/var/log
 NOW=`date +'%H-%M-%S'`
 
-#sudo cp $LOGPATH/nginx/access.log $LOGPATH/nginx/access-$NOW.log
-#sudo sh -c 'echo "" > /var/log/nginx/access.log'
-#
+sudo cp $LOGPATH/nginx/access.log $LOGPATH/nginx/access-$NOW.log
+sudo sh -c 'echo "" > /var/log/nginx/access.log'
+
 #sudo cp $LOGPATH/mariadb/slow.log $LOGPATH/mariadb/slow-$NOW.log
 #sudo sh -c 'echo "" > /var/log/mariadb/slow.log'
 
