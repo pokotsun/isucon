@@ -3,8 +3,8 @@ package main
 import (
 	// "encoding/json"
 	"fmt"
-	// "strconv"
 	"strings"
+	"encoding/json"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -14,7 +14,29 @@ const (
 	redisPort = "6379"
 
 	key = "KEY"
+	eventStarskeyPrefix="STARS-ENTRY-"
 )
+
+func makeEventStarsKey(keyword string) string {
+	return eventStarskeyPrefix + keyword
+}
+
+func pushStarToCache(keyword string, star *Star) {
+	serialized, err := json.Marshal(star)
+	panicIf(err)
+	key := makeEventStarsKey(keyword)
+	err = pushSetDataToCache(key, serialized)
+	panicIf(err)
+}
+
+func getStarsFromCache(keyword string) []*Star {
+	key := makeEventStarsKey(keyword)
+	bytes, err := getSetDataFromCache(key)
+	panicIf(err)
+	var stars []*Star
+	json.Unmarshal(bytes, &stars)
+	return stars
+}
 
 // func main() {}
 
