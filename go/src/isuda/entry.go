@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gomodule/redigo/redis"
+	// "github.com/gomodule/redigo/redis"
 )
 
 func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
@@ -51,14 +51,6 @@ func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 }
 
 func initReplacerToCache(r *http.Request) error {
-
-	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	defer conn.Close()
-
 	strs := []string{
 		`&`, "&amp;",
 		`'`, "&#39;",
@@ -75,11 +67,12 @@ func initReplacerToCache(r *http.Request) error {
 		return err
 	}
 	defer rows.Close()
+	key := REPLACER_KEY
 	for i := 0; i < len(strs); i += 2 {
 		data, _ := json.Marshal(strs[i])
-		pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
+		pushListDataToCache(key, data)
 		data, _ = json.Marshal(strs[i+1])
-		pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
+		pushListDataToCache(key, data)
 	}
 	for rows.Next() {
 		var keyword string
@@ -89,16 +82,18 @@ func initReplacerToCache(r *http.Request) error {
 			return err
 		}
 		data, _ := json.Marshal(keyword)
-		err := pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
+		err := pushListDataToCache(key, data)
 		if err != nil {
 			fmt.Println(err)
 		}
 
 		u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
-		panicIf(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 		link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
 		data, _ = json.Marshal(link)
-		pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
+		pushListDataToCache(key, data)
 	}
 	return nil
 }
