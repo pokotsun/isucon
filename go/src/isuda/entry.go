@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
-	// "github.com/gomodule/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 )
 
 func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
@@ -19,6 +19,8 @@ func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 	if err != nil {
 		return ""
 	}
+	rep_data = append(rep_data, "\n")
+	rep_data = append(rep_data, "<br />\n")
 	replacer := strings.NewReplacer(rep_data...)
 	return replacer.Replace(content)
 }
@@ -72,8 +74,19 @@ func initReplacerToCache(r *http.Request) error {
 }
 
 func pushReplacerToCache(keyword string, r *http.Request) {
+	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	_, err = conn.Do("MULTI")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	data, _ := json.Marshal(keyword)
-	err := pushListDataToCache(REPLACER_KEY, data)
+	err = pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -84,15 +97,26 @@ func pushReplacerToCache(keyword string, r *http.Request) {
 	}
 	link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
 	data, _ = json.Marshal(link)
-	err = pushListDataToCache(REPLACER_KEY, data)
+	err = pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
 	if err != nil {
 		fmt.Println(err)
 	}
+	conn.Do("Exec")
 }
 
 func removeReplacerFromCache(keyword string, r *http.Request) {
+	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	_, err = conn.Do("MULTI")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	data, _ := json.Marshal(keyword)
-	removeListDataFromCache(REPLACER_KEY, data)
+	removeListDataFromCacheWithConnection(REPLACER_KEY, data, conn)
 
 	u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
 	if err != nil {
@@ -100,7 +124,8 @@ func removeReplacerFromCache(keyword string, r *http.Request) {
 	}
 	link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
 	data, _ = json.Marshal(link)
-	removeListDataFromCache(REPLACER_KEY, data)
+	removeListDataFromCacheWithConnection(REPLACER_KEY, data, conn)
+	conn.Do("Exec")
 }
 
 func getReplacerFromCache() ([]string, error) {

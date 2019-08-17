@@ -238,6 +238,14 @@ func removeListDataFromCache(key string, data []byte) error {
 	return nil
 }
 
+func removeListDataFromCacheWithConnection(key string, data []byte, conn redis.Conn) error {
+	_, err := conn.Do("LREM", key, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func getSetDataFromCache(key string) ([]byte, error) {
 	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
 	if err != nil {
