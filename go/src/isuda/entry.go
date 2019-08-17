@@ -50,6 +50,12 @@ func initReplacerToCache(r *http.Request) error {
 		data, _ = json.Marshal(strs[i+1])
 		pushListDataToCache(key, data)
 	}
+	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer conn.Close()
 	for rows.Next() {
 		var keyword string
 		err = rows.Scan(&keyword)
@@ -57,8 +63,10 @@ func initReplacerToCache(r *http.Request) error {
 			fmt.Println(err)
 			return err
 		}
+		conn.Do("MULTI")
 		data, _ := json.Marshal(keyword)
-		err := pushListDataToCache(key, data)
+
+		err = pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -69,7 +77,11 @@ func initReplacerToCache(r *http.Request) error {
 		}
 		link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
 		data, _ = json.Marshal(link)
-		pushListDataToCache(key, data)
+		err = pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
+		if err != nil {
+			fmt.Println(err)
+		}
+		conn.Do("EXEC")
 	}
 	return nil
 }
