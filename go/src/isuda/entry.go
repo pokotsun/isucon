@@ -1,50 +1,142 @@
 package main
 
 import (
-	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 	"html"
 	"net/http"
-	"regexp"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gomodule/redigo/redis"
 )
-
 
 func htmlify(w http.ResponseWriter, r *http.Request, content string) string {
 	if content == "" {
 		return ""
 	}
-	rows, err := db.Query(`
-		SELECT * FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
-	`)
-	panicIf(err)
-	entries := make([]*Entry, 0, 500)
-	for rows.Next() {
-		e := Entry{}
-		err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt)
-		panicIf(err)
-		entries = append(entries, &e)
+	rep_data, err := getReplacerFromCache()
+	if err != nil {
+		return ""
 	}
-	rows.Close()
+	rep_data = append(rep_data, "\n")
+	rep_data = append(rep_data, "<br />\n")
+	replacer := strings.NewReplacer(rep_data...)
+	return replacer.Replace(content)
+}
 
-	keywords := make([]string, 0, 500)
-	for _, entry := range entries {
-		keywords = append(keywords, regexp.QuoteMeta(entry.Keyword))
+func initReplacerToCache(r *http.Request) error {
+	strs := []string{
+		`&`, "&amp;",
+		`'`, "&#39;",
+		`<`, "&lt;",
+		`>`, "&gt;",
+		`"`, "&#34;",
 	}
-	re := regexp.MustCompile("("+strings.Join(keywords, "|")+")")
-	kw2sha := make(map[string]string)
-	content = re.ReplaceAllStringFunc(content, func(kw string) string {
-		kw2sha[kw] = "isuda_" + fmt.Sprintf("%x", sha1.Sum([]byte(kw)))
-		return kw2sha[kw]
-	})
-	content = html.EscapeString(content)
-	for kw, hash := range kw2sha {
-		u, err := r.URL.Parse(baseUrl.String()+"/keyword/" + pathURIEscape(kw))
-		panicIf(err)
-		link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(kw))
-		content = strings.Replace(content, hash, link, -1)
+
+	rows, err := db.Query(`
+		SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
+	`)
+	if err != nil {
+		fmt.Println(err)
+		return err
 	}
-	return strings.Replace(content, "\n", "<br />\n", -1)
+	defer rows.Close()
+	key := REPLACER_KEY
+	for i := 0; i < len(strs); i += 2 {
+		data, _ := json.Marshal(strs[i])
+		pushListDataToCache(key, data)
+		data, _ = json.Marshal(strs[i+1])
+		pushListDataToCache(key, data)
+	}
+	for rows.Next() {
+		var keyword string
+		err = rows.Scan(&keyword)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		data, _ := json.Marshal(keyword)
+		err := pushListDataToCache(key, data)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
+		if err != nil {
+			fmt.Println(err)
+		}
+		link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
+		data, _ = json.Marshal(link)
+		pushListDataToCache(key, data)
+	}
+	return nil
+}
+
+func pushReplacerToCache(keyword string, r *http.Request) {
+	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	_, err = conn.Do("MULTI")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	data, _ := json.Marshal(keyword)
+	err = pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
+	if err != nil {
+		fmt.Println(err)
+	}
+	link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
+	data, _ = json.Marshal(link)
+	err = pushListDataToCacheWithConnection(REPLACER_KEY, data, conn)
+	if err != nil {
+		fmt.Println(err)
+	}
+	conn.Do("Exec")
+}
+
+func removeReplacerFromCache(keyword string, r *http.Request) {
+	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", redisHost, redisPort))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	_, err = conn.Do("MULTI")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	data, _ := json.Marshal(keyword)
+	removeListDataFromCacheWithConnection(REPLACER_KEY, data, conn)
+
+	u, err := r.URL.Parse(baseUrl.String() + "/keyword/" + pathURIEscape(keyword))
+	if err != nil {
+		fmt.Println(err)
+	}
+	link := fmt.Sprintf("<a href=\"%s\">%s</a>", u, html.EscapeString(keyword))
+	data, _ = json.Marshal(link)
+	removeListDataFromCacheWithConnection(REPLACER_KEY, data, conn)
+	conn.Do("Exec")
+}
+
+func getReplacerFromCache() ([]string, error) {
+	data, err := getListDataFromCache(REPLACER_KEY)
+	if err != nil {
+		return nil, err
+	}
+	var rep_data []string
+	err = json.Unmarshal(data, &rep_data)
+	if err != nil {
+		return nil, err
+	}
+	return rep_data, nil
 }

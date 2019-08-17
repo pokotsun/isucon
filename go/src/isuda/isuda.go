@@ -71,6 +71,9 @@ func initializeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := db.Exec(`DELETE FROM entry WHERE id > 7101`)
 	panicIf(err)
 
+	FLUSH_ALL()
+	initReplacerToCache(r)
+
 	_, err = db.Exec("TRUNCATE star")
 	panicIf(err)
 
@@ -170,6 +173,9 @@ func keywordPostHandler(w http.ResponseWriter, r *http.Request) {
 		ON DUPLICATE KEY UPDATE
 		author_id = ?, keyword = ?, description = ?, updated_at = NOW()
 	`, userID, keyword, description, userID, keyword, description)
+	if err == nil {
+		pushReplacerToCache(keyword, r)
+	}
 	panicIf(err)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -310,10 +316,12 @@ func keywordByKeywordDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = db.Exec(`DELETE FROM entry WHERE keyword = ?`, keyword)
+	if err == nil {
+		removeReplacerFromCache(keyword, r)
+	}
 	panicIf(err)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
-
 
 func isSpamContents(content string) bool {
 	v := url.Values{}
