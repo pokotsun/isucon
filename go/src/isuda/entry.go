@@ -60,7 +60,7 @@ func initReplacerToCache(r *http.Request) error {
 	}
 
 	rows, err := db.Query(`
-		SELECT keywords FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
+		SELECT keyword FROM entry ORDER BY CHARACTER_LENGTH(keyword) DESC
 	`)
 	if err != nil {
 		fmt.Println(err)
