@@ -1,25 +1,27 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"net/url"
+	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func loadStars(keyword string) []*Star {
-	v := url.Values{}
-	v.Set("keyword", keyword)
-	resp, err := http.Get(fmt.Sprintf("%s/stars", isutarEndpoint) + "?" + v.Encode())
-	panicIf(err)
-	defer resp.Body.Close()
 
-	var data struct {
-		Result []*Star `json:result`
+	rows, err := db.Query(`SELECT * FROM star WHERE keyword = ?`, keyword)
+	if err != nil && err != sql.ErrNoRows {
+		panicIf(err)
 	}
-	err = json.NewDecoder(resp.Body).Decode(&data)
-	panicIf(err)
-	return data.Result
+
+	stars := make([]*Star, 0, 10)
+	for rows.Next() {
+		s := Star{}
+		err := rows.Scan(&s.ID, &s.Keyword, &s.UserName, &s.CreatedAt)
+		panicIf(err)
+		stars = append(stars, &s)
+	}
+	rows.Close()
+
+	return stars
+
 }
