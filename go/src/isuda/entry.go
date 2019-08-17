@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"strconv"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -139,4 +140,25 @@ func getReplacerFromCache() ([]string, error) {
 		return nil, err
 	}
 	return rep_data, nil
+}
+
+func setHtmlTocache(entryID int, content string) {
+	data, err := json.Marshal(content)
+	if err != nil {
+		fmt.Println(err)
+	}
+	setHashDataToCache(ENTRY_HTML, strconv.Itoa(entryID), data)
+}
+
+func getHtmlFromCache(entryID int) (string, error) {
+	data, err := getHashDataFromCache(ENTRY_HTML, strconv.Itoa(entryID))
+	if err != nil {
+		return "", err
+	}
+	var str string
+	err = json.Unmarshal(data, &str)
+	if err != nil {
+		return "", err
+	}
+	return str, nil
 }

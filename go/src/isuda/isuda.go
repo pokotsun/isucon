@@ -109,7 +109,12 @@ func topHandler(w http.ResponseWriter, r *http.Request) {
 		e := Entry{}
 		err := rows.Scan(&e.ID, &e.AuthorID, &e.Keyword, &e.Description, &e.UpdatedAt, &e.CreatedAt)
 		panicIf(err)
-		e.Html = htmlify(w, r, e.Description)
+		html, err := getHtmlFromCache(e.ID)
+		e.Html = html
+		if err != nil {
+			e.Html = htmlify(w, r, e.Description)
+			setHtmlTocache(e.ID, e.Html)
+		}
 		e.Stars = loadStars(e.Keyword)
 		entries = append(entries, &e)
 	}
@@ -274,6 +279,7 @@ func keywordByKeywordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	e.Html = htmlify(w, r, e.Description)
+	setHtmlTocache(e.ID, e.Html)
 	e.Stars = loadStars(e.Keyword)
 
 	re.HTML(w, http.StatusOK, "keyword", struct {

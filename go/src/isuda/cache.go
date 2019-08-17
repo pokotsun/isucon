@@ -13,8 +13,8 @@ const (
 	redisHost = "192.168.0.115"
 	redisPort = "6379"
 
-	key          = "KEY"
 	REPLACER_KEY = "REP_KEY"
+	ENTRY_HTML   = "ENTRY_HTML"
 )
 
 // func main() {}
