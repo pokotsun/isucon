@@ -53,6 +53,7 @@ func forbidden(w http.ResponseWriter) {
 
 func panicIf(err error) {
 	if err != nil {
+		fmt.Println(err)
 		panic(err)
 	}
 }
