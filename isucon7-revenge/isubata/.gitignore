@@ -1,0 +1,7 @@
+.DS_Store
+*.swp
+*.swo
+*.pyc
+.idea/
+webapp/php/vendor
+webapp/perl/local

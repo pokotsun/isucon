@@ -1,0 +1,9 @@
+.viminfo
+.profile
+.bashrc
+.bash_logout
+.bash_history
+.gitconfig
+/go/
+/local/
+/xbuild/
