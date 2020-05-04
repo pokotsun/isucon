@@ -1,0 +1,1 @@
+{"name":"Cpanel::JSON::XS","dist":"Cpanel-JSON-XS-4.11","target":"Cpanel::JSON::XS","version":4.11,"provides":{"Cpanel::JSON::XS::Type":{"file":"XS/Type.pm"},"Cpanel::JSON::XS":{"version":4.11,"file":"XS.pm"}},"pathname":"R/RU/RURBAN/Cpanel-JSON-XS-4.11.tar.gz"}
